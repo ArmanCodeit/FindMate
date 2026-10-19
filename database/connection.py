@@ -1,3 +1,4 @@
+import os
 import sys
 import logging
 from pymongo import MongoClient, TEXT, ASCENDING, DESCENDING
@@ -14,17 +15,23 @@ def get_client():
     """Return singleton MongoClient with connection verification."""
     global _mongo_client
     if _mongo_client is None:
-        mongo_uri = os.getenv("MONGO_URI") or getattr(Config, "MONGO_URI", "mongodb://localhost:27017/")
+        mongo_uri = (
+            os.getenv("MONGO_URI")
+            or os.getenv("MONGODB_URI")
+            or getattr(Config, "MONGO_URI", None)
+            or getattr(Config, "MONGODB_URI", None)
+            or "mongodb://localhost:27017/"
+        )
         try:
             _mongo_client = MongoClient(
                 mongo_uri,
-                serverSelectionTimeoutMS=3000,
-                connectTimeoutMS=3000
+                serverSelectionTimeoutMS=5000,
+                connectTimeoutMS=5000
             )
             # Verify connection via admin ping
             _mongo_client.admin.command('ping')
             logger.info("Successfully connected to MongoDB at %s", mongo_uri.split("@")[-1] if "@" in mongo_uri else mongo_uri)
-        except (ConnectionFailure, ServerSelectionTimeoutError) as exc:
+        except Exception as exc:
             _mongo_client = None  # Reset so subsequent retry calls can re-attempt with new credentials
             logger.error("FATAL: Could not connect to MongoDB at %s: %s", mongo_uri, exc)
             raise ConnectionError(
@@ -44,11 +51,14 @@ def get_db():
 
 def check_db_connection():
     """Health check for MongoDB connection."""
+    global _mongo_client, _db
     try:
         client = get_client()
         client.admin.command('ping')
         return True, "MongoDB connection healthy"
     except Exception as exc:
+        _mongo_client = None
+        _db = None
         return False, str(exc)
 
 def init_db_indexes():

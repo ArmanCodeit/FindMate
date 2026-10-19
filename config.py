@@ -12,7 +12,8 @@ class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", "findmate-development-fallback-secret-key-2025")
     
     # MongoDB Configuration
-    MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
+    MONGO_URI = os.getenv("MONGO_URI") or os.getenv("MONGODB_URI") or "mongodb://localhost:27017/"
+    MONGODB_URI = MONGO_URI
     DB_NAME = os.getenv("DB_NAME", "findmate_db")
     
     # Cloudinary Configuration

@@ -14,9 +14,18 @@ import streamlit as st
 
 # 1. Sync Streamlit Cloud Secrets into os.environ
 if hasattr(st, "secrets") and st.secrets:
-    for key, val in st.secrets.items():
-        if isinstance(val, str):
-            os.environ[key] = val
+    try:
+        for key, val in st.secrets.items():
+            if isinstance(val, str):
+                os.environ[key] = val
+                os.environ[key.upper()] = val
+            elif hasattr(val, "items"):
+                for sub_k, sub_v in val.items():
+                    if isinstance(sub_v, str):
+                        os.environ[sub_k] = sub_v
+                        os.environ[sub_k.upper()] = sub_v
+    except Exception:
+        pass
 
 # Also load from .env if running locally
 try:
@@ -25,10 +34,18 @@ try:
 except ImportError:
     pass
 
+# Aliasing / Normalizing MONGO_URI and MONGODB_URI
+if "MONGODB_URI" in os.environ and "MONGO_URI" not in os.environ:
+    os.environ["MONGO_URI"] = os.environ["MONGODB_URI"]
+if "MONGO_URI" in os.environ and "MONGODB_URI" not in os.environ:
+    os.environ["MONGODB_URI"] = os.environ["MONGO_URI"]
+
 from config import Config
 # Propagate environment variables into Config
-if os.getenv("MONGO_URI"):
-    Config.MONGO_URI = os.getenv("MONGO_URI")
+mongo_uri_val = os.getenv("MONGO_URI") or os.getenv("MONGODB_URI")
+if mongo_uri_val:
+    Config.MONGO_URI = mongo_uri_val
+    Config.MONGODB_URI = mongo_uri_val
 if os.getenv("DB_NAME"):
     Config.DB_NAME = os.getenv("DB_NAME")
 if os.getenv("SECRET_KEY"):
