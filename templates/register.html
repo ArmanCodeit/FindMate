@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Register Student Account — FindMate{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-sm-9">
+      
+      <div class="text-center mb-4">
+        <div class="fm-logo-icon mx-auto mb-2" style="width: 48px; height: 48px; font-size: 1.5rem;">
+          <i class="bi bi-person-plus-fill"></i>
+        </div>
+        <h2 class="h3 fw-bold text-dark mb-1">Create Student Account</h2>
+        <p class="text-muted small">Join the FindMate Campus Network to report and claim lost items</p>
+      </div>
+
+      <div class="fm-form-card">
+        <form action="{{ url_for('auth.register') }}" method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          <div class="mb-3">
+            <label class="form-label fw-bold small text-dark">Full Name *</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-person"></i></span>
+              <input type="text" name="full_name" class="form-control border-start-0 ps-0" placeholder="e.g. Sarah Jenkins" required minlength="2" maxlength="80">
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold small text-dark">Campus Email Address *</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-envelope"></i></span>
+              <input type="email" name="email" class="form-control border-start-0 ps-0" placeholder="sjenkins@university.edu" required>
+            </div>
+            <div class="form-text text-muted small">We recommend using your official university email handle.</div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold small text-dark">Student ID Number (Optional)</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-card-heading"></i></span>
+              <input type="text" name="student_id" class="form-control border-start-0 ps-0" placeholder="e.g. UH-10245897">
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold small text-dark">Mobile Phone Number (Optional)</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-telephone"></i></span>
+              <input type="tel" name="phone_number" class="form-control border-start-0 ps-0" placeholder="10-digit mobile number (e.g. 9876543210)">
+            </div>
+            <div class="form-text text-muted small">Kept private. Only mutually revealed when you approve/get approved for an item claim.</div>
+          </div>
+
+          <div class="row g-3 mb-4">
+            <div class="col-sm-6">
+              <label class="form-label fw-bold small text-dark">Password *</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-lock"></i></span>
+                <input type="password" name="password" class="form-control border-start-0 ps-0" placeholder="At least 6 chars" required minlength="6">
+              </div>
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label fw-bold small text-dark">Confirm Password *</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-shield-check"></i></span>
+                <input type="password" name="confirm_password" class="form-control border-start-0 ps-0" placeholder="Repeat password" required minlength="6">
+              </div>
+            </div>
+          </div>
+
+          <div class="p-3 rounded-4 bg-light border small mb-4 text-muted">
+            <i class="bi bi-shield-check text-teal me-1"></i>
+            By registering, you agree to FindMate community guidelines and safe item handover protocols.
+          </div>
+
+          <button type="submit" class="fm-btn-coral w-100 py-2 mb-3">
+            Create My Account
+          </button>
+
+          <div class="text-center text-muted small">
+            Already have an account? 
+            <a href="{{ url_for('auth.login') }}" class="fw-bold text-teal text-decoration-none">Sign In</a>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

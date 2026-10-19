@@ -1,0 +1,259 @@
+{% extends "base.html" %}
+
+{% block title %}Browse Lost &amp; Found Items — FindMate Registry{% endblock %}
+
+{% block content %}
+<div class="container pb-5">
+
+  <!-- Header Section (Image 1 Match) -->
+  <div class="fm-browse-title-wrap">
+    <div class="d-flex align-items-center justify-content-center gap-2 mb-2 flex-wrap">
+      <span class="fm-pill-badge fm-badge-blue">
+        <i class="bi bi-shield-check"></i> Live Campus Feed &bull; UH M&#257;noa
+      </span>
+      <span class="fm-pill-badge fm-badge-peach">
+        <i class="bi bi-tag-fill me-1"></i> Live Campus Lost &amp; Found Directory
+      </span>
+    </div>
+
+    <h1 class="fm-browse-title">
+      Browse Lost &amp; <span style="color: #B9382E;">Found Items</span>
+    </h1>
+
+    <p class="fm-browse-subtitle">
+      Search and filter through real-time belongings reported across student lecture halls, libraries, dining commons, and dormitories.
+    </p>
+  </div>
+
+  <!-- Floating Search Capsule Bar -->
+  <form action="{{ url_for('item.browse') }}" method="GET" class="fm-search-capsule mb-4">
+    {% if current_filters.type %}
+      <input type="hidden" name="type" value="{{ current_filters.type }}">
+    {% endif %}
+    {% if current_filters.status %}
+      <input type="hidden" name="status" value="{{ current_filters.status }}">
+    {% endif %}
+
+    <!-- Search Query -->
+    <div class="fm-search-section">
+      <i class="bi bi-search text-muted"></i>
+      <div class="w-100">
+        <input type="text" name="q" value="{{ current_filters.q }}" class="form-control" placeholder="Search for an item (e.g. Water Bottle, AirPods, keys)...">
+      </div>
+    </div>
+
+    <!-- Category Dropdown -->
+    <div class="fm-search-section">
+      <i class="bi bi-grid text-muted"></i>
+      <div class="w-100">
+        <select name="category" class="form-select">
+          <option value="">All Categories</option>
+          {% for cat in categories %}
+            <option value="{{ cat }}" {{ 'selected' if current_filters.category == cat else '' }}>{{ cat }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <!-- Campus Hubs Dropdown -->
+    <div class="fm-search-section">
+      <i class="bi bi-buildings text-muted"></i>
+      <div class="w-100">
+        <select name="building" class="form-select">
+          <option value="">All Campus Hubs</option>
+          {% for loc in locations %}
+            <option value="{{ loc }}" {{ 'selected' if current_filters.building == loc else '' }}>{{ loc }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <!-- Date Filter -->
+    <div class="fm-search-section">
+      <i class="bi bi-calendar-event text-muted"></i>
+      <div class="w-100">
+        <input type="date" name="date" value="{{ current_filters.date }}" max="{{ today_date }}" class="form-control" title="Filter by date">
+      </div>
+    </div>
+
+    <!-- Search Button -->
+    <button type="submit" class="fm-search-btn-pill">
+      <i class="bi bi-search"></i> Search
+    </button>
+  </form>
+
+  <!-- Filter Row & View Toggles -->
+  <div class="fm-filter-row">
+    
+    <!-- Left Filter Pills -->
+    <div class="fm-filter-group">
+      <a href="{{ url_for('item.browse', q=current_filters.q, category=current_filters.category, building=current_filters.building, sort=current_sort) }}" class="fm-filter-pill {{ 'active-all' if not current_filters.type and not current_filters.status else '' }}">
+        <i class="bi bi-collection"></i> All Items <span class="fm-filter-badge-count">{{ stats.total }}</span>
+      </a>
+      <a href="{{ url_for('item.browse', type='lost', q=current_filters.q, category=current_filters.category, building=current_filters.building, sort=current_sort) }}" class="fm-filter-pill {{ 'active-lost' if current_filters.type == 'lost' else '' }}">
+        <span class="text-danger">&bull;</span> Lost <span class="fm-filter-badge-count">{{ stats.lost }}</span>
+      </a>
+      <a href="{{ url_for('item.browse', type='found', q=current_filters.q, category=current_filters.category, building=current_filters.building, sort=current_sort) }}" class="fm-filter-pill {{ 'active-found' if current_filters.type == 'found' else '' }}">
+        <span class="text-success">&bull;</span> Found <span class="fm-filter-badge-count">{{ stats.found }}</span>
+      </a>
+      <a href="{{ url_for('item.browse', status='resolved', q=current_filters.q, category=current_filters.category, building=current_filters.building, sort=current_sort) }}" class="fm-filter-pill {{ 'active-resolved' if current_filters.status == 'resolved' or current_filters.type == 'resolved' else '' }}">
+        <span class="text-primary">&bull;</span> Resolved <span class="fm-filter-badge-count">{{ stats.resolved }}</span>
+      </a>
+    </div>
+
+    <!-- Right Controls -->
+    <div class="d-flex align-items-center gap-3">
+      <a href="{{ url_for('item.browse') }}" class="text-muted small text-decoration-none d-flex align-items-center gap-1" id="reset-filters-btn">
+        <i class="bi bi-arrow-counterclockwise"></i> Reset Filters
+      </a>
+      <div class="btn-group btn-group-sm" role="group">
+        <button type="button" class="btn btn-outline-secondary active" title="Grid View">
+          <i class="bi bi-grid-fill"></i>
+        </button>
+        <button type="button" class="btn btn-outline-secondary" title="List View">
+          <i class="bi bi-list"></i>
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Items Grid (Image 1 Match) -->
+  {% if items %}
+    <div class="row g-4 mb-4">
+      {% for item in items %}
+        <div class="col-xl-3 col-lg-4 col-sm-6">
+          <div class="fm-card h-100 d-flex flex-column">
+            
+            <!-- Card Image Container -->
+            <div class="fm-card-img-wrap">
+              <span class="fm-card-floating-badge fm-badge-tag fm-badge-{{ item.report_type }}">
+                &bull; {{ item.report_type }}
+              </span>
+              {% if item.image_filename %}
+                <img src="{{ url_for('static', filename='uploads/' + item.image_filename) }}" alt="{{ item.title }}" class="fm-card-img" onerror="this.parentElement.innerHTML='<div class=\'fm-no-image-placeholder\'><i class=\'bi bi-box-seam\'></i><span>No photo</span></div>'">
+              {% else %}
+                <div class="fm-no-image-placeholder">
+                  <i class="bi bi-box-seam"></i>
+                  <span>No photo uploaded</span>
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Card Body -->
+            <div class="fm-card-body flex-grow-1">
+              <span class="fm-card-category-tag fm-cat-{{ item.category|lower|replace(' ', '-') if item.category else 'default' }}">
+                {{ item.category or "CAMPUS ITEM" }}
+              </span>
+              <h3 class="fm-card-title">{{ item.title }}</h3>
+              
+              <div class="fm-card-meta">
+                <div class="fm-card-meta-row">
+                  <i class="bi bi-geo-alt text-teal"></i> {{ item.location or "Campus Center" }}
+                </div>
+                <div class="fm-card-meta-row">
+                  <i class="bi bi-clock"></i> {{ 'Reported' if item.report_type == 'lost' else 'Found' }}: {{ item.date_lost_or_found|format_date }}
+                </div>
+                {% if item.contact_number %}
+                  <div class="fm-card-meta-row text-muted fw-semibold">
+                    <i class="bi bi-shield-lock text-warning" title="Mutual unlock upon photo verification"></i> <code>{{ item.contact_number|mask_phone }}</code>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+
+            <!-- Card Footer -->
+            <div class="fm-card-footer">
+              <span class="fm-card-ref">Ref {{ item.report_id or '#LM-4081' }}</span>
+              <a href="{{ url_for('item.item_details', item_id=item._id) }}" class="fm-card-link-red">
+                View Details &rarr;
+              </a>
+            </div>
+
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Pagination & Item Count (Image 1 Bottom) -->
+    <div class="fm-pagination-wrap">
+      <div>
+        Showing <strong>1 &ndash; {{ items|length }}</strong> of {{ pagination.total if pagination.total is defined else items|length }} campus items
+      </div>
+
+      {% set num_pages = pagination.pages if pagination.pages is defined else (pagination.total_pages if pagination.total_pages is defined else 1) %}
+      {% if num_pages > 1 %}
+        <ul class="fm-pagination">
+          {% if pagination.page > 1 %}
+            <li>
+              <a href="{{ url_for('item.browse', page=pagination.page - 1, q=current_filters.q, category=current_filters.category, building=current_filters.building, type=current_filters.type, status=current_filters.status, sort=current_sort) }}" class="fm-page-link">
+                &larr; Previous
+              </a>
+            </li>
+          {% endif %}
+
+          {% for p in range(1, num_pages + 1) %}
+            <li>
+              <a href="{{ url_for('item.browse', page=p, q=current_filters.q, category=current_filters.category, building=current_filters.building, type=current_filters.type, status=current_filters.status, sort=current_sort) }}" class="fm-page-link {{ 'active' if p == pagination.page else '' }}">
+                {{ p }}
+              </a>
+            </li>
+          {% endfor %}
+
+          {% if pagination.page < num_pages %}
+            <li>
+              <a href="{{ url_for('item.browse', page=pagination.page + 1, q=current_filters.q, category=current_filters.category, building=current_filters.building, type=current_filters.type, status=current_filters.status, sort=current_sort) }}" class="fm-page-link">
+                Next &rarr;
+              </a>
+            </li>
+          {% endif %}
+        </ul>
+      {% endif %}
+    </div>
+
+  {% else %}
+    <div class="p-5 text-center bg-white rounded-4 border my-4">
+      <i class="bi bi-search text-muted display-4 mb-3 d-block"></i>
+      <h4 class="fw-bold text-dark">No matching items found</h4>
+      <p class="text-muted small max-w-500 mx-auto">
+        We couldn't find any campus items matching your current filters. Try searching with different keywords, clearing filters, or report a missing belonging.
+      </p>
+      <div class="d-flex justify-content-center gap-2 mt-3">
+        <a href="{{ url_for('item.browse') }}" class="btn btn-light border rounded-pill px-4 fw-semibold">
+          Clear All Filters
+        </a>
+        <a href="{{ url_for('item.report_item') }}" class="fm-btn-coral">
+          <i class="bi bi-plus-square"></i> Report Missing Item
+        </a>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Call to Action Banner (Image 1 Bottom) -->
+  <div class="fm-cta-banner">
+    <i class="bi bi-patch-check-fill fm-cta-watermark"></i>
+    
+    <div class="row align-items-center g-4 position-relative" style="z-index: 1;">
+      <div class="col-lg-8">
+        <span class="fm-pill-badge fm-badge-peach mb-2">
+          <i class="bi bi-stopwatch-fill me-1"></i> Quick 60-Second Process
+        </span>
+        <h2 class="h3 fw-bold text-dark mt-2 mb-2">Can't find your item on campus?</h2>
+        <p class="text-muted mb-0 pe-lg-4">
+          Don't stress! Post a quick missing alert. Our community of over 14,000 students, facility staff, and campus security receive instant location-based notifications.
+        </p>
+      </div>
+
+      <div class="col-lg-4 text-lg-end d-flex flex-wrap gap-2 justify-content-lg-end">
+        <a href="{{ url_for('item.report_item', type='lost') }}" class="fm-btn-coral">
+          <i class="bi bi-plus-square"></i> Report It in 60s
+        </a>
+        <a href="{{ url_for('item.faq') }}#support" class="btn btn-light bg-white border rounded-pill px-3 py-2 fw-bold text-dark shadow-sm">
+          Ask Lost &amp; Found Desk
+        </a>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

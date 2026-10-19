@@ -1,0 +1,390 @@
+{% extends "base.html" %}
+
+{% block title %}Report a Lost or Found Item — FindMate Portal{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Header Section (Image 4 Match) -->
+  <div class="fm-report-header">
+    <div class="d-inline-flex mb-2">
+      <span class="fm-pill-badge fm-badge-peach">
+        <i class="bi bi-tag-fill me-1"></i> Campus Lost &amp; Found Portal
+      </span>
+    </div>
+    
+    <h1 class="h2 fw-bold text-dark mb-2">Report a Lost or Found Item</h1>
+    <p class="text-muted small max-w-600 mx-auto mb-0">
+      Help fellow students by reporting something you lost or safely registering an item you found on campus.
+    </p>
+
+    <!-- Large Mode Toggles (Image 4 Match) -->
+    <div class="fm-type-toggle-wrap">
+      <a href="javascript:void(0)" class="fm-type-toggle-pill {{ 'active-teal' if default_type == 'lost' else '' }}" id="btn-toggle-lost">
+        <span> I Lost Something</span>
+      </a>
+      <a href="javascript:void(0)" class="fm-type-toggle-pill {{ 'active-teal' if default_type == 'found' else '' }}" id="btn-toggle-found">
+        <span> I Found Something</span>
+      </a>
+    </div>
+  </div>
+
+  <form action="{{ url_for('item.report_item') }}" method="POST" enctype="multipart/form-data" id="report-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="report_type" id="report_type_input" value="{{ default_type }}">
+
+    <!-- Form Main Card (Image 4 Match) -->
+    <div class="fm-form-card">
+      
+      <!-- Top Active Mode Alert Banner -->
+      <div class="fm-active-mode-banner" id="active-mode-banner">
+        <div class="d-flex align-items-center gap-3">
+          <div class="rounded-circle bg-teal text-white p-2 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px; min-width: 42px;">
+            <i class="bi bi-qr-code-scan fs-5"></i>
+          </div>
+          <div>
+            <strong class="text-dark d-block" id="banner-mode-title">You are reporting a Missing Belonging</strong>
+            <span class="text-muted small" id="banner-mode-desc">We'll alert campus desk staff &amp; match against recent found drop-offs.</span>
+          </div>
+        </div>
+
+        <span class="badge bg-white text-teal border rounded-pill px-3 py-2 small fw-bold" id="banner-mode-badge">
+          Active Mode: Lost Report
+        </span>
+      </div>
+
+      <!-- Two Column Form Layout -->
+      <div class="row g-4">
+        
+        <!-- Left Column: Item Attributes -->
+        <div class="col-lg-7">
+          <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+            <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+              <i class="bi bi-card-text text-danger"></i> Item Attributes
+            </h5>
+            <span class="text-muted small">* Required fields</span>
+          </div>
+
+          <!-- Item Name or Summary -->
+          <div class="mb-3">
+            <label class="form-label fw-bold small text-dark">Item Name or Summary *</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-bookmark"></i></span>
+              <input type="text" name="title" value="{{ form_data.title or '' }}" class="form-control border-start-0 ps-0" placeholder="e.g., Blue Hydroflask with solar system stickers" required minlength="3" maxlength="120">
+            </div>
+          </div>
+
+          <!-- Category & Academic Term Row -->
+          <div class="row g-3 mb-3">
+            <div class="col-sm-6">
+              <label class="form-label fw-bold small text-dark">Category *</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-grid"></i></span>
+                <select name="category" class="form-select border-start-0 ps-0" required>
+                  <option value="">Select category...</option>
+                  {% for cat in categories %}
+                    <option value="{{ cat }}" {{ 'selected' if form_data.category == cat else '' }}>{{ cat }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+
+            <div class="col-sm-6">
+              <label class="form-label fw-bold small text-dark">Academic Term</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-calendar3"></i></span>
+                <select name="academic_term" class="form-select border-start-0 ps-0">
+                  <option value="Spring 2026" selected>Spring Semester 2026</option>
+                  <option value="Fall 2025">Fall Semester 2025</option>
+                  <option value="Summer 2026">Summer Term 2026</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Campus Location & Date Incident Occurred Row -->
+          <div class="row g-3 mb-3">
+            <div class="col-sm-6">
+              <label class="form-label fw-bold small text-dark">Campus Location / Spot *</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-geo-alt"></i></span>
+                <input type="text" name="location" value="{{ form_data.location or '' }}" class="form-control border-start-0 ps-0" placeholder="e.g., Campus Center 2nd Fl" list="campus-locations" required>
+                <datalist id="campus-locations">
+                  {% for loc in locations %}
+                    <option value="{{ loc }}">
+                  {% endfor %}
+                </datalist>
+              </div>
+            </div>
+
+            <div class="col-sm-6">
+              <label class="form-label fw-bold small text-dark" id="date-label">Date Incident Occurred *</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-calendar-event"></i></span>
+                <input type="date" name="date_lost_or_found" id="date_lost_or_found" value="{{ form_data.date_lost_or_found or today_date }}" max="{{ today_date }}" class="form-control border-start-0 ps-0" required>
+              </div>
+              <div class="form-text text-muted" style="font-size: 0.72rem;">Cannot be a future date (up to today, {{ today_formatted }}).</div>
+            </div>
+          </div>
+
+          <!-- Public Description -->
+          <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <label class="form-label fw-bold small text-dark mb-0">Public Description *</label>
+              <span class="text-muted small" id="desc-counter">0 / 300</span>
+            </div>
+            <textarea name="description" id="public-description" class="form-control rounded-3" rows="3" maxlength="300" placeholder="Describe color shades, noticeable stickers, visible wear marks, or exact time you were at the campus spot..." required minlength="5">{{ form_data.description or '' }}</textarea>
+          </div>
+
+          <!-- Private Verification Key / Secret Detail Box (Image 4 Match) -->
+          <div class="p-3 rounded-4 bg-light border">
+            <div class="d-flex align-items-center justify-content-between mb-1">
+              <div class="d-flex align-items-center gap-2 fw-bold text-dark small">
+                <i class="bi bi-lock-fill text-primary"></i> Private Verification Key / Secret Detail
+              </div>
+              <span class="fm-pill-badge fm-badge-blue py-0" style="font-size: 0.68rem;">
+                Owner Protection
+              </span>
+            </div>
+            <p class="text-muted mb-2" style="font-size: 0.76rem;">
+              Hidden from public listings. Only legitimate claimants will be asked to confirm this detail (e.g. specific keychain engraving, wallpaper quote, or initials inside strap).
+            </p>
+            <input type="text" name="additional_details" value="{{ form_data.additional_details or '' }}" class="form-control bg-white rounded-3 small" placeholder="e.g. Red lanyard has a small cat charm on back; student ID ending in 412">
+          </div>
+
+        </div>
+
+        <!-- Right Column: Media & Safe Routing -->
+        <div class="col-lg-5">
+          <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+            <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+              <i class="bi bi-shield-check text-primary"></i> Media &amp; Safe Routing
+            </h5>
+          </div>
+
+          <!-- Item Photo Upload Dropzone (Image 4 Match) -->
+          <label class="form-label fw-bold small text-dark mb-2">Item Photo (Recommended)</label>
+          <div class="fm-upload-box" id="fm-dropzone">
+            <input type="file" name="item_photo" id="item_photo" accept="image/png, image/jpeg, image/webp" class="d-none">
+            
+            <div id="dropzone-content">
+              <div class="rounded-circle bg-danger bg-opacity-10 text-danger p-3 d-inline-flex align-items-center justify-content-center mb-2" style="width: 54px; height: 54px;">
+                <i class="bi bi-cloud-arrow-up-fill fs-3"></i>
+              </div>
+              <div class="fw-bold text-dark small">Click to upload or drag &amp; drop</div>
+              <div class="text-muted mb-3" style="font-size: 0.75rem;">PNG, JPG, or WEBP up to 10MB</div>
+              
+              <div class="d-flex justify-content-center gap-2">
+                <button type="button" class="btn btn-sm btn-light border rounded-circle p-2" title="Snap Photo" style="width: 36px; height: 36px;">
+                  <i class="bi bi-camera"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-light border rounded-circle p-2" title="Add File" style="width: 36px; height: 36px;">
+                  <i class="bi bi-plus-lg"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-light border rounded-circle p-2" title="Gallery" style="width: 36px; height: 36px;">
+                  <i class="bi bi-image"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Live Image Preview Container -->
+            <div id="image-preview-container" style="display: none;">
+              <img id="image-preview-img" src="#" alt="Uploaded Preview" class="img-fluid rounded-3 mb-2 shadow-sm" style="max-height: 180px; object-fit: contain;">
+              <div class="d-flex justify-content-center gap-2 mt-2">
+                <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3" id="remove-preview-btn">
+                  <i class="bi bi-trash"></i> Remove
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Contact & Claim Preference (Image 4 Match) -->
+          <label class="form-label fw-bold small text-dark mb-2">Contact &amp; Claim Preference</label>
+          
+          <label class="fm-pref-card" for="pref-messaging">
+            <input class="form-check-input mt-1" type="radio" name="claim_preference" id="pref-messaging" value="messaging" checked>
+            <div>
+              <div class="fw-bold small text-dark">
+                Verified Student Messaging <i class="bi bi-patch-check-fill text-teal"></i>
+              </div>
+              <div class="text-muted" style="font-size: 0.75rem;">
+                Allows confirmed .edu campus accounts to send direct recovery chats.
+              </div>
+            </div>
+          </label>
+
+          <label class="fm-pref-card" for="pref-desk">
+            <input class="form-check-input mt-1" type="radio" name="claim_preference" id="pref-desk" value="desk">
+            <div>
+              <div class="fw-bold small text-dark">
+                Route through Lost &amp; Found Desk <i class="bi bi-building text-primary"></i>
+              </div>
+              <div class="text-muted" style="font-size: 0.75rem;">
+                Hold exchange at Main Student Union or Campus Police front station.
+              </div>
+            </div>
+          </label>
+
+          <!-- FindMate Safety Guarantee Box (Image 4 Match) -->
+          <div class="p-3 rounded-4 bg-danger bg-opacity-10 border border-danger-subtle my-3 d-flex align-items-start gap-2">
+            <i class="bi bi-shield-shaded text-danger fs-5 mt-1"></i>
+            <div class="small">
+              <strong class="text-danger d-block mb-1">FindMate Safety Guarantee</strong>
+              <span class="text-muted" style="font-size: 0.75rem;">
+                Never agree to meet unverified individuals off-campus or late at night. Always utilize university designated Safe-Exchange spots.
+              </span>
+            </div>
+          </div>
+
+          <!-- Signed In User Status (Image 4 Match) -->
+          {% if current_user %}
+            <div class="p-2 rounded bg-light border d-flex align-items-center justify-content-between small text-muted">
+              <span><i class="bi bi-person-badge text-primary me-1"></i> Signed in as <strong>{{ current_user.full_name }}</strong> (.edu)</span>
+              <span class="badge bg-secondary-subtle text-secondary rounded-pill">Auto-Linked</span>
+            </div>
+          {% endif %}
+
+        </div>
+
+      </div>
+
+      <!-- Action Footer (Image 4 Match) -->
+      <div class="d-flex align-items-center justify-content-between pt-4 mt-4 border-top flex-wrap gap-2">
+        <a href="{{ url_for('item.home') }}" class="text-muted fw-bold text-decoration-none small">
+          Cancel &amp; Return Home
+        </a>
+
+        <div class="d-flex gap-2">
+          <button type="button" class="btn btn-light border rounded-pill px-4 fw-semibold" onclick="alert('Draft report saved to your browser session.');">
+            Save as Draft
+          </button>
+          <button type="submit" class="fm-btn-coral px-4" id="submit-report-btn">
+            <i class="bi bi-send-fill"></i> Submit Report
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </form>
+
+  <!-- 3 Bottom Feature Cards (Image 4 Bottom) -->
+  <div class="fm-three-features-grid">
+    <div class="fm-feature-card">
+      <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-2 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; min-width: 44px;">
+        <i class="bi bi-qr-code fs-4"></i>
+      </div>
+      <div>
+        <h6 class="fw-bold text-dark mb-1">1. Fast Matchmaking</h6>
+        <p class="text-muted small mb-0">Instant matching against 1,200+ active campus recovery items.</p>
+      </div>
+    </div>
+
+    <div class="fm-feature-card">
+      <div class="rounded-circle bg-danger bg-opacity-10 text-danger p-2 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; min-width: 44px;">
+        <i class="bi bi-shield-lock fs-4"></i>
+      </div>
+      <div>
+        <h6 class="fw-bold text-dark mb-1">2. Private Details</h6>
+        <p class="text-muted small mb-0">Secret marks guarantee the real owner receives the item.</p>
+      </div>
+    </div>
+
+    <div class="fm-feature-card">
+      <div class="rounded-circle bg-teal bg-opacity-10 text-teal p-2 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; min-width: 44px;">
+        <i class="bi bi-hand-thumbs-up fs-4"></i>
+      </div>
+      <div>
+        <h6 class="fw-bold text-dark mb-1">3. Safe Reunion</h6>
+        <p class="text-muted small mb-0">Pick up safely from the Student Union Helpdesk or police station.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const btnLost = document.getElementById("btn-toggle-lost");
+  const btnFound = document.getElementById("btn-toggle-found");
+  const typeInput = document.getElementById("report_type_input");
+  const bannerTitle = document.getElementById("banner-mode-title");
+  const bannerDesc = document.getElementById("banner-mode-desc");
+  const bannerBadge = document.getElementById("banner-mode-badge");
+  const dateLabel = document.getElementById("date-label");
+
+  function setMode(mode) {
+    typeInput.value = mode;
+    if (mode === "lost") {
+      btnLost.classList.add("active-teal");
+      btnFound.classList.remove("active-teal");
+      bannerTitle.textContent = "You are reporting a Missing Belonging";
+      bannerDesc.textContent = "We'll alert campus desk staff & match against recent found drop-offs.";
+      bannerBadge.textContent = "Active Mode: Lost Report";
+      if (dateLabel) dateLabel.textContent = "Date Incident Occurred *";
+    } else {
+      btnFound.classList.add("active-teal");
+      btnLost.classList.remove("active-teal");
+      bannerTitle.textContent = "You are registering a Found Campus Item";
+      bannerDesc.textContent = "Hold the item safely in campus custody until verified owner claims it.";
+      bannerBadge.textContent = "Active Mode: Found Report";
+      if (dateLabel) dateLabel.textContent = "Date Found *";
+    }
+  }
+
+  if (btnLost && btnFound) {
+    btnLost.addEventListener("click", () => setMode("lost"));
+    btnFound.addEventListener("click", () => setMode("found"));
+  }
+
+  // Description character counter
+  const descInput = document.getElementById("public-description");
+  const descCounter = document.getElementById("desc-counter");
+  if (descInput && descCounter) {
+    descInput.addEventListener("input", function() {
+      descCounter.textContent = `${this.value.length} / 300`;
+    });
+  }
+
+  // Photo dropzone
+  const dropzone = document.getElementById("fm-dropzone");
+  const fileInput = document.getElementById("item_photo");
+  const previewContainer = document.getElementById("image-preview-container");
+  const previewImg = document.getElementById("image-preview-img");
+  const dropContent = document.getElementById("dropzone-content");
+  const removeBtn = document.getElementById("remove-preview-btn");
+
+  if (dropzone && fileInput) {
+    dropzone.addEventListener("click", function(e) {
+      if (e.target !== removeBtn && !removeBtn.contains(e.target)) {
+        fileInput.click();
+      }
+    });
+
+    fileInput.addEventListener("change", function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          previewImg.src = evt.target.result;
+          previewContainer.style.display = "block";
+          dropContent.style.display = "none";
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    if (removeBtn) {
+      removeBtn.addEventListener("click", function(e) {
+        e.stopPropagation();
+        fileInput.value = "";
+        previewImg.src = "#";
+        previewContainer.style.display = "none";
+        dropContent.style.display = "block";
+      });
+    }
+  }
+});
+</script>
+{% endblock %}

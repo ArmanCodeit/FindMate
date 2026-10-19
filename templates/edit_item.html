@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Report — {{ item.title }} — FindMate{% endblock %}
+
+{% block content %}
+<div class="container py-4 max-w-800 mx-auto" style="max-width: 820px;">
+  
+  <div class="mb-4">
+    <a href="{{ url_for('item.item_details', item_id=item._id) }}" class="text-dark fw-bold text-decoration-none small">
+      &larr; Back to Item Details
+    </a>
+    <div class="d-flex align-items-center gap-2 mt-2">
+      <span class="fm-badge-tag fm-badge-{{ item.report_type }}">&bull; {{ item.report_type }}</span>
+      <h2 class="h3 fw-bold text-dark mb-0">Edit Report: {{ item.title }}</h2>
+    </div>
+    <p class="text-muted small mb-0">Update description, campus coordinates, status, or photos.</p>
+  </div>
+
+  <div class="fm-form-card">
+    <form action="{{ url_for('item.edit_item', item_id=item._id) }}" method="POST" enctype="multipart/form-data">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div class="row g-3 mb-3">
+        <div class="col-md-8">
+          <label class="form-label fw-bold small text-dark">Item Title *</label>
+          <input type="text" name="title" value="{{ item.title }}" class="form-control rounded-3" required minlength="3" maxlength="120">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-bold small text-dark">Category *</label>
+          <select name="category" class="form-select rounded-3" required>
+            {% for cat in categories %}
+              <option value="{{ cat }}" {{ 'selected' if item.category == cat else '' }}>{{ cat }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="row g-3 mb-3">
+        <div class="col-md-4">
+          <label class="form-label fw-bold small text-dark">Campus Location *</label>
+          <input type="text" name="location" value="{{ item.location }}" class="form-control rounded-3" list="campus-locations" required>
+          <datalist id="campus-locations">
+            {% for loc in locations %}
+              <option value="{{ loc }}">
+            {% endfor %}
+          </datalist>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-bold small text-dark">Date {{ item.report_type|capitalize }} *</label>
+          <input type="date" name="date_lost_or_found" value="{{ item.date_lost_or_found }}" max="{{ today_date }}" class="form-control rounded-3" required>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-bold small text-dark">Resolution Status</label>
+          <select name="resolution_status" class="form-select rounded-3">
+            <option value="open" {{ 'selected' if item.resolution_status == 'open' else '' }}>Open (Active Registry)</option>
+            <option value="claimed" {{ 'selected' if item.resolution_status == 'claimed' else '' }}>Claimed</option>
+            <option value="resolved" {{ 'selected' if item.resolution_status == 'resolved' else '' }}>Resolved</option>
+          </select>
+        </div>
+      </div>
+
+      {% if item.contact_number %}
+        <div class="mb-3 p-3 bg-light rounded-3 border">
+          <label class="form-label fw-bold small text-muted"><i class="bi bi-shield-lock-fill text-teal me-1"></i> Assigned Direct Contact Number</label>
+          <div class="input-group">
+            <span class="input-group-text bg-white text-teal fw-bold"><i class="bi bi-phone"></i></span>
+            <input type="text" class="form-control bg-white fw-bold text-dark" value="{{ item.contact_number }}" readonly>
+          </div>
+          <div class="form-text text-muted" style="font-size: 0.72rem;">Generated automatically on submission. Contact numbers cannot be modified.</div>
+        </div>
+      {% endif %}
+
+      <div class="mb-3">
+        <label class="form-label fw-bold small text-dark">Public Description *</label>
+        <textarea name="description" class="form-control rounded-3" rows="4" required minlength="5">{{ item.description }}</textarea>
+      </div>
+
+      <div class="mb-3 p-3 bg-light rounded-3 border">
+        <label class="form-label fw-bold small text-dark d-flex align-items-center gap-1">
+          <i class="bi bi-lock-fill text-primary"></i> Verification Details / Hidden Key
+        </label>
+        <input type="text" name="additional_details" value="{{ item.additional_details or '' }}" class="form-control bg-white rounded-3" placeholder="Hidden features only the true owner would know...">
+      </div>
+
+      <div class="mb-4">
+        <label class="form-label fw-bold small text-dark">Replace Photo (Optional)</label>
+        <input type="file" name="item_photo" accept="image/*" class="form-control rounded-3">
+        {% if item.image_filename %}
+          <div class="mt-2 text-muted small">
+            Current image: <code>{{ item.image_filename }}</code>
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+        <a href="{{ url_for('item.item_details', item_id=item._id) }}" class="btn btn-light border rounded-pill px-4 fw-semibold">Cancel</a>
+        <button type="submit" class="fm-btn-coral px-4">
+          Save Changes
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

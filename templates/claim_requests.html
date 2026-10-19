@@ -1,0 +1,277 @@
+{% extends "base.html" %}
+
+{% block title %}Campus Claim Requests — FindMate Registry{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+    <div>
+      <h2 class="h3 fw-bold text-dark mb-1">Campus Claim Requests</h2>
+      <p class="text-muted small mb-0">Track verification status for your claimed items and review incoming claims.</p>
+    </div>
+    <a href="{{ url_for('dashboard.student_dashboard') }}" class="fm-btn-outline py-2 px-4" style="font-size: 0.85rem;">
+      <i class="bi bi-speedometer2 me-1"></i> Dashboard
+    </a>
+  </div>
+
+  <!-- Mobile Number Profile Notice -->
+  {% if current_user and not current_user.phone_number %}
+    <div class="alert border-0 shadow-sm rounded-4 p-3 mb-4 d-flex align-items-center justify-content-between flex-wrap gap-3" style="background-color: #FFFBEB; border: 1px solid #FDE68A !important;">
+      <div class="d-flex align-items-center gap-3">
+        <i class="bi bi-telephone-exclamation-fill fs-3 text-warning"></i>
+        <div>
+          <h6 class="fw-bold mb-0 text-dark">Missing Verified Mobile Number</h6>
+          <div class="small text-muted">To enable mutual contact sharing upon claim verification, please register your 10-digit mobile number.</div>
+        </div>
+      </div>
+      <form action="{{ url_for('auth.update_phone') }}" method="POST" class="d-flex align-items-center gap-2">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="input-group input-group-sm" style="width: 220px;">
+          <span class="input-group-text bg-white" style="border-radius: var(--fm-radius-pill) 0 0 var(--fm-radius-pill);">+91</span>
+          <input type="tel" name="phone_number" class="form-control" style="border-radius: 0 var(--fm-radius-pill) var(--fm-radius-pill) 0;" placeholder="9876543210" pattern="[6789][0-9]{9}" maxlength="10" required>
+        </div>
+        <button type="submit" class="fm-btn-pill-coral btn-sm py-1 px-3 fw-bold text-nowrap">Save Number</button>
+      </form>
+    </div>
+  {% endif %}
+
+  <div class="row g-4">
+    <!-- Received Claims (For Your Reported Items) -->
+    <div class="col-lg-6">
+      <div class="bg-white p-4 rounded-4 border shadow-sm h-100">
+        <h4 class="h5 fw-bold text-dark mb-3 d-flex align-items-center justify-content-between">
+          <span><i class="bi bi-inbox-fill text-success me-2"></i> Claims Received for Your Found Items</span>
+          <span class="badge bg-light text-dark border">{{ claims_received|length }}</span>
+        </h4>
+
+        {% if claims_received %}
+          <div class="d-flex flex-column gap-3">
+            {% for cl in claims_received %}
+              <div class="p-3 border rounded-3 bg-light">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="fw-bold small">
+                    <a href="{{ url_for('item.item_details', item_id=cl.item._id) if cl.item else '#' }}" class="text-decoration-none text-dark hover-green">
+                      {{ cl.item.title if cl.item else "Campus Item" }}
+                    </a>
+                  </span>
+                  <span class="badge {{ 'bg-warning-subtle text-warning' if cl.status == 'pending' else ('bg-success-subtle text-success' if cl.status == 'approved' else 'bg-danger-subtle text-danger') }} border px-2 py-1 rounded-pill small">
+                    {{ cl.status|capitalize }}
+                  </span>
+                </div>
+                
+                <div class="text-muted small mb-2">
+                  Claimant: <strong>{{ cl.claimant.full_name if cl.claimant else "Student" }}</strong> ({{ cl.contact_email }})
+                  &bull; <span class="text-secondary">{{ cl.created_at|time_ago }}</span>
+                </div>
+
+                <div class="bg-white p-2 rounded border small text-muted mb-3">
+                  <strong>Proof Provided:</strong> {{ cl.verification_details }}
+                </div>
+
+                <!-- Private Verification Photo Evidence -->
+                {% if cl.verification_image_path %}
+                  <div class="mb-3">
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                      <span class="fw-bold small text-muted"><i class="bi bi-camera-fill text-success me-1"></i> Verification Evidence Photo</span>
+                      <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none fw-semibold" data-photo-url="{{ url_for('claim.get_verification_photo', claim_id=cl._id) }}" data-photo-title="{{ cl.item.title if cl.item else 'Verification Photo' }}" onclick="openPhotoModal(this.dataset.photoUrl, this.dataset.photoTitle);">
+                        <i class="bi bi-arrows-fullscreen"></i> Enlarge
+                      </button>
+                    </div>
+                    <div class="border rounded-3 p-1 bg-white text-center">
+                      <img src="{{ url_for('claim.get_verification_photo', claim_id=cl._id) }}" class="rounded img-fluid shadow-sm" style="max-height: 160px; object-fit: contain; cursor: pointer;" data-photo-url="{{ url_for('claim.get_verification_photo', claim_id=cl._id) }}" data-photo-title="{{ cl.item.title if cl.item else 'Verification Photo' }}" onclick="openPhotoModal(this.dataset.photoUrl, this.dataset.photoTitle);" alt="Verification Evidence Photo">
+                    </div>
+                    <div class="text-muted text-center mt-1" style="font-size: 0.72rem;">
+                      <i class="bi bi-shield-lock-fill text-secondary me-1"></i> Private: Visible only to you as the listing owner
+                    </div>
+                  </div>
+                {% endif %}
+
+                <!-- Mutual Phone Number Status -->
+                {% if cl.contact_unlocked and cl.claimant_phone %}
+                  <div class="alert alert-success border-success-subtle py-2 px-3 small rounded-3 mb-3">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                      <div>
+                        <div class="fw-bold text-success"><i class="bi bi-unlock-fill me-1"></i> Contact Unlocked</div>
+                        <div class="fs-6 fw-bold mt-1">
+                          <i class="bi bi-telephone-fill me-1"></i> <a href="tel:{{ cl.claimant_phone }}" class="text-success text-decoration-none">{{ cl.claimant_phone }}</a>
+                        </div>
+                      </div>
+                      <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3" onclick="navigator.clipboard.writeText('{{ cl.claimant_phone }}'); this.innerText='Copied!'; setTimeout(() => this.innerText='Copy', 2000);">
+                        <i class="bi bi-clipboard"></i> Copy
+                      </button>
+                    </div>
+                    <div class="text-muted mt-1" style="font-size: 0.72rem;">Verification approved. Contact numbers are now available to both students.</div>
+                  </div>
+                {% else %}
+                  <div class="p-2 bg-white rounded border small text-muted mb-3">
+                    <div class="d-flex align-items-center justify-content-between">
+                      <span><i class="bi bi-lock-fill text-warning me-1"></i> Claimant Contact: <code>{{ cl.claimant_phone_masked }}</code></span>
+                      <span class="badge bg-warning-subtle text-warning border">Masked</span>
+                    </div>
+                    <div class="text-muted mt-1" style="font-size: 0.72rem;">
+                      Contact numbers will be revealed after the lost-item owner approves the verification photo.
+                    </div>
+                  </div>
+                {% endif %}
+
+                <!-- Actions for Item Owner -->
+                {% if cl.status == 'pending' %}
+                  <div class="d-flex gap-2">
+                    <form action="{{ url_for('claim.review_claim', claim_id=cl._id) }}" method="POST" class="flex-grow-1">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <input type="hidden" name="action" value="approve">
+                      <input type="hidden" name="reviewer_notes" value="Verification photo approved. Handover authorized.">
+                      <button type="submit" class="btn btn-sm w-100 fw-bold rounded-pill text-white" style="background-color: var(--fm-teal); border: none;">
+                        <i class="bi bi-check-circle-fill me-1"></i> Approve Photo
+                      </button>
+                    </form>
+                    <form action="{{ url_for('claim.review_claim', claim_id=cl._id) }}" method="POST" class="flex-grow-1">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <input type="hidden" name="action" value="reject">
+                      <input type="hidden" name="reviewer_notes" value="Proof of ownership did not match verification details.">
+                      <button type="submit" class="btn btn-sm w-100 fw-semibold rounded-pill" style="border: 1px solid #CBD5E1; color: #64748B; background: white;">
+                        <i class="bi bi-x-circle me-1"></i> Reject
+                      </button>
+                    </form>
+                  </div>
+                {% elif cl.status == 'approved' and cl.item and cl.item.resolution_status != 'resolved' %}
+                  <form action="{{ url_for('claim.resolve_handover', claim_id=cl._id) }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="fm-btn-pill-coral btn-sm w-100 py-2 fw-bold text-center" style="border: none;" onclick="return confirm('Confirm safe item handover? This will mark the listing as Resolved.');">
+                      <i class="bi bi-patch-check-fill me-1"></i> Mark Handover Complete / Resolved
+                    </button>
+                  </form>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center py-4 text-muted">
+            <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+            <p class="small mb-0">No incoming claim requests.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Sent Claims (Claims You Have Submitted) -->
+    <div class="col-lg-6">
+      <div class="bg-white p-4 rounded-4 border shadow-sm h-100">
+        <h4 class="h5 fw-bold text-dark mb-3 d-flex align-items-center justify-content-between">
+          <span><i class="bi bi-send-fill text-primary me-2"></i> Claims You Have Submitted</span>
+          <span class="badge bg-light text-dark border">{{ claims_sent|length }}</span>
+        </h4>
+
+        {% if claims_sent %}
+          <div class="d-flex flex-column gap-3">
+            {% for cl in claims_sent %}
+              <div class="p-3 border rounded-3 bg-light">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="fw-bold small">
+                    <a href="{{ url_for('item.item_details', item_id=cl.item._id) if cl.item else '#' }}" class="text-decoration-none text-dark hover-green">
+                      {{ cl.item.title if cl.item else "Campus Item" }}
+                    </a>
+                  </span>
+                  <span class="badge {{ 'bg-warning-subtle text-warning' if cl.status == 'pending' else ('bg-success-subtle text-success' if cl.status == 'approved' else 'bg-danger-subtle text-danger') }} border px-2 py-1 rounded-pill small">
+                    {{ cl.status|capitalize }}
+                  </span>
+                </div>
+                
+                <div class="text-muted small mb-2">Submitted {{ cl.created_at|time_ago }}</div>
+                
+                <div class="bg-white p-2 rounded border small text-muted mb-3">
+                  <strong>Your Proof Note:</strong> {{ cl.verification_details }}
+                </div>
+
+                <!-- Your Submitted Verification Photo Evidence -->
+                {% if cl.verification_image_path %}
+                  <div class="mb-3">
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                      <span class="fw-bold small text-muted"><i class="bi bi-camera-fill text-success me-1"></i> Your Verification Photo Evidence</span>
+                      <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none fw-semibold" data-photo-url="{{ url_for('claim.get_verification_photo', claim_id=cl._id) }}" data-photo-title="{{ cl.item.title if cl.item else 'Verification Photo' }}" onclick="openPhotoModal(this.dataset.photoUrl, this.dataset.photoTitle);">
+                        <i class="bi bi-arrows-fullscreen"></i> Enlarge
+                      </button>
+                    </div>
+                    <div class="border rounded-3 p-1 bg-white text-center">
+                      <img src="{{ url_for('claim.get_verification_photo', claim_id=cl._id) }}" class="rounded img-fluid shadow-sm" style="max-height: 140px; object-fit: contain; cursor: pointer;" data-photo-url="{{ url_for('claim.get_verification_photo', claim_id=cl._id) }}" data-photo-title="{{ cl.item.title if cl.item else 'Verification Photo' }}" onclick="openPhotoModal(this.dataset.photoUrl, this.dataset.photoTitle);" alt="Your Verification Evidence Photo">
+                    </div>
+                  </div>
+                {% endif %}
+
+                <!-- Item Owner Contact Number -->
+                {% if cl.contact_unlocked and cl.owner_phone %}
+                  <div class="alert alert-success border-success-subtle py-2 px-3 small rounded-3 mb-2">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                      <div>
+                        <div class="fw-bold text-success"><i class="bi bi-unlock-fill me-1"></i> Contact Unlocked</div>
+                        <div class="fs-6 fw-bold mt-1">
+                          <i class="bi bi-telephone-fill me-1"></i> <a href="tel:{{ cl.owner_phone }}" class="text-success text-decoration-none">{{ cl.owner_phone }}</a>
+                        </div>
+                      </div>
+                      <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3" onclick="navigator.clipboard.writeText('{{ cl.owner_phone }}'); this.innerText='Copied!'; setTimeout(() => this.innerText='Copy', 2000);">
+                        <i class="bi bi-clipboard"></i> Copy
+                      </button>
+                    </div>
+                    <div class="text-muted mt-1" style="font-size: 0.72rem;">Verification approved. Contact numbers are now available to both students.</div>
+                  </div>
+                {% else %}
+                  <div class="p-2 bg-white rounded border small text-muted mb-2">
+                    <div class="d-flex align-items-center justify-content-between">
+                      <span><i class="bi bi-lock-fill text-warning me-1"></i> Item Owner Contact: <code>{{ cl.owner_phone_masked }}</code></span>
+                      <span class="badge bg-warning-subtle text-warning border">Masked</span>
+                    </div>
+                    <div class="text-muted mt-1" style="font-size: 0.72rem;">
+                      Contact numbers will be revealed after the lost-item owner approves the verification photo.
+                    </div>
+                  </div>
+                {% endif %}
+
+                {% if cl.reviewer_notes %}
+                  <div class="mt-2 text-success small">
+                    <strong>Status Note:</strong> {{ cl.reviewer_notes }}
+                  </div>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center py-4 text-muted">
+            <i class="bi bi-send fs-2 d-block mb-2"></i>
+            <p class="small mb-0">You haven't submitted any claim requests yet.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Responsive Photo Inspection Modal -->
+<div class="modal fade" id="photoInspectionModal" tabindex="-1" aria-labelledby="photoModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content rounded-4 border-0 shadow">
+      <div class="modal-header border-bottom px-4 py-3">
+        <h5 class="modal-title fw-bold" id="photoModalTitle">
+          <i class="bi bi-patch-check-fill text-success me-2"></i> Private Verification Evidence
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-3 text-center bg-dark rounded-bottom-4">
+        <img id="inspectionModalImg" src="" class="img-fluid rounded-3 shadow" style="max-height: 75vh; object-fit: contain;" alt="Full Resolution Evidence Photo">
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function openPhotoModal(imgUrl, itemTitle) {
+  const modalImg = document.getElementById('inspectionModalImg');
+  const modalTitle = document.getElementById('photoModalTitle');
+  if (modalImg) modalImg.src = imgUrl;
+  if (modalTitle && itemTitle) {
+    modalTitle.innerHTML = '<i class="bi bi-patch-check-fill text-success me-2"></i> Evidence: ' + itemTitle;
+  }
+  const modal = new bootstrap.Modal(document.getElementById('photoInspectionModal'));
+  modal.show();
+}
+</script>
+{% endblock %}

@@ -1,0 +1,407 @@
+{% extends "base.html" %}
+
+{% block title %}Campus Admin Console — FindMate{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Admin Title Banner -->
+  <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+    <div>
+      <div class="d-flex align-items-center gap-2">
+        <h1 class="h3 fw-bold text-dark mb-0">Campus Administrator Console</h1>
+        <span class="fm-pill-badge fm-badge-peach">
+          <i class="bi bi-shield-lock-fill me-1"></i> Admin Privileges
+        </span>
+      </div>
+      <p class="text-muted small mb-0 mt-1">Supervise campus registries, moderate reports, review claims, and manage student accounts.</p>
+    </div>
+    
+    <div class="text-muted small">
+      Logged in as: <strong>{{ admin.full_name }}</strong> ({{ admin.email }})
+    </div>
+  </div>
+
+  <!-- KPI Overview Metrics -->
+  <div class="row g-3 mb-4">
+    <div class="col-sm-6 col-lg-2">
+      <div class="fm-stat-box">
+        <div class="fm-stat-num">{{ total_users }}</div>
+        <div class="fm-stat-label">Campus Users</div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-2">
+      <div class="fm-stat-box">
+        <div class="fm-stat-num">{{ total_reports }}</div>
+        <div class="fm-stat-label">Total Reports</div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-2">
+      <div class="fm-stat-box">
+        <div class="fm-stat-num text-danger">{{ open_lost }}</div>
+        <div class="fm-stat-label">Open Lost Alerts</div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-2">
+      <div class="fm-stat-box">
+        <div class="fm-stat-num text-success">{{ open_found }}</div>
+        <div class="fm-stat-label">Open Found Items</div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-2">
+      <div class="fm-stat-box">
+        <div class="fm-stat-num text-secondary">{{ resolved_reports }}</div>
+        <div class="fm-stat-label">Reunited / Claimed</div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-2">
+      <div class="fm-stat-box">
+        <div class="fm-stat-num text-warning">{{ pending_claims_count }}</div>
+        <div class="fm-stat-label">Pending Claims</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin Navigation Tabs -->
+  <ul class="nav nav-pills mb-4 gap-2" id="adminTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active px-4 py-2 rounded-pill fw-semibold" id="admin-reports-tab" data-bs-toggle="pill" data-bs-target="#admin-tab-reports" type="button" role="tab">
+        <i class="bi bi-shield-check me-1"></i> Registry Moderation ({{ items|length }})
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link px-4 py-2 rounded-pill fw-semibold" id="admin-claims-tab" data-bs-toggle="pill" data-bs-target="#admin-tab-claims" type="button" role="tab">
+        <i class="bi bi-patch-check me-1"></i> Claims Review ({{ all_claims|length }})
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link px-4 py-2 rounded-pill fw-semibold" id="admin-users-tab" data-bs-toggle="pill" data-bs-target="#admin-tab-users" type="button" role="tab">
+        <i class="bi bi-people me-1"></i> User Management ({{ users|length }})
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link px-4 py-2 rounded-pill fw-semibold" id="admin-stats-tab" data-bs-toggle="pill" data-bs-target="#admin-tab-stats" type="button" role="tab">
+        <i class="bi bi-bar-chart me-1"></i> Category Analytics
+      </button>
+    </li>
+  </ul>
+
+  <!-- Tab Contents -->
+  <div class="tab-content" id="adminTabsContent">
+    
+    <!-- Tab 1: Moderation of Items -->
+    <div class="tab-pane fade show active" id="admin-tab-reports" role="tabpanel">
+      {% if items %}
+        <div class="fm-table-card">
+          <div class="p-3 border-bottom d-flex align-items-center justify-content-between" style="background-color: #FAF8F5;">
+            <span class="fw-bold small text-muted text-uppercase">Recent Registry Filings</span>
+            <span class="badge bg-light text-muted border">Showing {{ items|length }} listings</span>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead style="background-color: #FAF8F5; color: #64748B; font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.04em;">
+                <tr>
+                  <th scope="col" class="ps-4">Item</th>
+                  <th scope="col">Reporter</th>
+                  <th scope="col">Location</th>
+                  <th scope="col">Date</th>
+                  <th scope="col">Status</th>
+                  <th scope="col" class="text-end pe-4">Admin Moderation</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for it in items %}
+                  <tr>
+                    <td class="ps-4">
+                      <div class="d-flex align-items-center gap-3">
+                        <div style="width: 44px; height: 44px; border-radius: 8px; overflow: hidden; background: #F1F5F9; flex-shrink: 0;">
+                          {% if it.image_filename %}
+                            <img src="{{ url_for('static', filename='uploads/' + it.image_filename) }}" alt="{{ it.title }}" style="width: 100%; height: 100%; object-fit: cover;">
+                          {% else %}
+                            <div class="d-flex align-items-center justify-content-center h-100 bg-light text-muted">
+                              <i class="bi bi-card-image"></i>
+                            </div>
+                          {% endif %}
+                        </div>
+                        <div>
+                          <a href="{{ url_for('item.item_details', item_id=it._id) }}" class="fw-bold text-dark text-decoration-none small">
+                            {{ it.title }}
+                          </a>
+                          <div class="text-muted" style="font-size: 0.75rem;">
+                            {{ it.report_id }} &bull; <span class="fm-badge-tag fm-badge-{{ it.report_type }}" style="font-size: 0.65rem; padding: 1px 6px;">{{ it.report_type }}</span>
+                            {% if it.contact_number %}
+                              &bull; <span class="text-success fw-semibold"><i class="bi bi-telephone-fill"></i> <a href="tel:{{ it.contact_number }}" class="text-success text-decoration-none">{{ it.contact_number }}</a></span>
+                            {% endif %}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="small">
+                      {{ it.reporter.full_name if it.reporter else "Campus Member" }}<br>
+                      <span class="text-muted" style="font-size: 0.7rem;">{{ it.reporter.email if it.reporter else "" }}</span>
+                    </td>
+                    <td class="small text-muted">{{ it.location }}</td>
+                    <td class="small text-muted">{{ it.date_lost_or_found|format_date }}</td>
+                    <td>
+                      {% if it.resolution_status in ['claimed', 'resolved'] %}
+                        <span class="badge bg-secondary-subtle text-secondary border px-2 py-1 rounded-pill small">
+                          {{ it.resolution_status|capitalize }}
+                        </span>
+                      {% else %}
+                        <span class="badge bg-success-subtle text-success border px-2 py-1 rounded-pill small">
+                          Open
+                        </span>
+                      {% endif %}
+                    </td>
+                    <td class="text-end pe-4">
+                      <div class="btn-group btn-group-sm">
+                        <a href="{{ url_for('item.item_details', item_id=it._id) }}" class="btn btn-outline-secondary" title="View details">
+                          <i class="bi bi-eye"></i>
+                        </a>
+                        <a href="{{ url_for('item.edit_item', item_id=it._id) }}" class="btn btn-outline-secondary" title="Edit listing">
+                          <i class="bi bi-pencil"></i>
+                        </a>
+                        <form action="{{ url_for('item.toggle_resolve', item_id=it._id) }}" method="POST" class="d-inline">
+                          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                          <button type="submit" class="btn btn-outline-success" title="Toggle status">
+                            <i class="bi bi-check2"></i>
+                          </button>
+                        </form>
+                        <form action="{{ url_for('admin.admin_delete_item', item_id=it._id) }}" method="POST" class="d-inline" onsubmit="return confirm('Moderation: permanently delete listing?');">
+                          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                          <button type="submit" class="btn btn-outline-danger" title="Delete listing">
+                            <i class="bi bi-trash"></i>
+                          </button>
+                        </form>
+                      </div>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      {% else %}
+        <div class="p-5 text-center bg-white rounded-4 border">
+          <i class="bi bi-journal-x text-muted display-4 mb-3 d-block"></i>
+          <h5 class="fw-bold">No reported items yet</h5>
+          <p class="text-muted small mb-0">Campus items submitted by students will appear here for administrative moderation.</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Tab 2: Claims Review -->
+    <div class="tab-pane fade" id="admin-tab-claims" role="tabpanel">
+      {% if all_claims %}
+        <div class="fm-table-card">
+          <div class="p-3 border-bottom d-flex align-items-center justify-content-between" style="background-color: #FAF8F5;">
+            <span class="fw-bold small text-muted text-uppercase">Campus Claim Review Log</span>
+            <span class="badge bg-light text-muted border">Showing all requests</span>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead style="background-color: #FAF8F5; color: #64748B; font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.04em;">
+                <tr>
+                  <th scope="col" class="ps-4">Item</th>
+                  <th scope="col">Claimant</th>
+                  <th scope="col">Message &amp; Verification Detail</th>
+                  <th scope="col">Status</th>
+                  <th scope="col" class="text-end pe-4">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for cl in all_claims %}
+                  <tr>
+                    <td class="ps-4">
+                      {% if cl.item %}
+                        <a href="{{ url_for('item.item_details', item_id=cl.item._id) }}" class="fw-bold text-dark text-decoration-none small">
+                          {{ cl.item.title }}
+                        </a>
+                        <div class="text-muted" style="font-size: 0.75rem;">{{ cl.item.location }}</div>
+                      {% else %}
+                        <span class="text-muted small">Item removed</span>
+                      {% endif %}
+                    </td>
+                    <td class="small">
+                      {{ cl.claimant.full_name if cl.claimant else "Student" }}<br>
+                      <span class="text-muted" style="font-size: 0.75rem;">{{ cl.contact_email }}</span>
+                    </td>
+                    <td class="small" style="max-width: 320px;">
+                      <div><strong>Msg:</strong> {{ cl.message }}</div>
+                      <div class="text-success"><strong>Proof:</strong> {{ cl.verification_details }}</div>
+                      {% if cl.reviewer_notes %}
+                        <div class="text-muted" style="font-size: 0.7rem;">Note: {{ cl.reviewer_notes }}</div>
+                      {% endif %}
+                    </td>
+                    <td>
+                      <span class="badge {{ 'bg-warning-subtle text-warning' if cl.status == 'pending' else ('bg-success-subtle text-success' if cl.status == 'approved' else 'bg-danger-subtle text-danger') }} border px-2 py-1 rounded-pill small">
+                        {{ cl.status|capitalize }}
+                      </span>
+                    </td>
+                    <td class="text-end pe-4">
+                      {% if cl.status == 'pending' %}
+                        <div class="btn-group btn-group-sm">
+                          <form action="{{ url_for('claim.review_claim', claim_id=cl._id) }}" method="POST" class="d-inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="action" value="approve">
+                            <input type="hidden" name="reviewer_notes" value="Approved by Campus Administrator.">
+                            <button type="submit" class="btn btn-sm btn-success" title="Approve claim">Approve</button>
+                          </form>
+                          <form action="{{ url_for('claim.review_claim', claim_id=cl._id) }}" method="POST" class="d-inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="action" value="reject">
+                            <input type="hidden" name="reviewer_notes" value="Rejected by Campus Administrator: Insufficient proof.">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Reject claim">Reject</button>
+                          </form>
+                        </div>
+                      {% else %}
+                        <span class="text-muted small">Completed</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      {% else %}
+        <div class="p-5 text-center bg-white rounded-4 border">
+          <i class="bi bi-inbox text-muted display-4 mb-3 d-block"></i>
+          <h5 class="fw-bold">No claim requests filed yet</h5>
+          <p class="text-muted small mb-0">Verification claim requests submitted by students will appear here for administrative review.</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Tab 3: User Management -->
+    <div class="tab-pane fade" id="admin-tab-users" role="tabpanel">
+      {% if users %}
+        <div class="fm-table-card">
+          <div class="p-3 border-bottom d-flex align-items-center justify-content-between" style="background-color: #FAF8F5;">
+            <span class="fw-bold small text-muted text-uppercase">Registered Campus Accounts</span>
+            <span class="badge bg-light text-muted border">Total: {{ total_users }} users</span>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead style="background-color: #FAF8F5; color: #64748B; font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.04em;">
+                <tr>
+                  <th scope="col" class="ps-4">User</th>
+                  <th scope="col">Student ID</th>
+                  <th scope="col">Role</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Joined</th>
+                  <th scope="col" class="text-end pe-4">Account Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for u in users %}
+                  <tr>
+                    <td class="ps-4">
+                      <div class="fw-bold small text-dark">{{ u.full_name }}</div>
+                      <div class="text-muted" style="font-size: 0.75rem;">{{ u.email }}</div>
+                    </td>
+                    <td class="small text-muted">{{ u.student_id or '—' }}</td>
+                    <td>
+                      <span class="badge {{ 'bg-danger-subtle text-danger' if u.role == 'admin' else 'bg-primary-subtle text-primary' }} border px-2 py-1 rounded-pill small text-capitalize">
+                        {{ u.role }}
+                      </span>
+                    </td>
+                    <td>
+                      {% if u.is_active %}
+                        <span class="badge bg-success-subtle text-success border px-2 py-1 rounded-pill small">Active</span>
+                      {% else %}
+                        <span class="badge bg-danger-subtle text-danger border px-2 py-1 rounded-pill small">Deactivated</span>
+                      {% endif %}
+                    </td>
+                    <td class="small text-muted">{{ u.created_at|format_date }}</td>
+                    <td class="text-end pe-4">
+                      {% if u._id|string != admin._id|string %}
+                        <div class="d-inline-flex gap-2">
+                          <!-- Toggle Status -->
+                          <form action="{{ url_for('admin.toggle_user_status', user_id=u._id) }}" method="POST" class="d-inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm {{ 'btn-outline-warning' if u.is_active else 'btn-outline-success' }}">
+                              {{ 'Deactivate' if u.is_active else 'Activate' }}
+                            </button>
+                          </form>
+                          <!-- Change Role -->
+                          <form action="{{ url_for('admin.change_user_role', user_id=u._id) }}" method="POST" class="d-inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="role" value="{{ 'student' if u.role == 'admin' else 'admin' }}">
+                            <button type="submit" class="btn btn-sm btn-outline-secondary">
+                              Make {{ 'Student' if u.role == 'admin' else 'Admin' }}
+                            </button>
+                          </form>
+                        </div>
+                      {% else %}
+                        <span class="badge bg-light text-muted border">Your Account</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      {% else %}
+        <div class="p-5 text-center bg-white rounded-4 border">
+          <i class="bi bi-people text-muted display-4 mb-3 d-block"></i>
+          <h5 class="fw-bold">No registered users found</h5>
+          <p class="text-muted small mb-0">Registered campus student and administrator accounts will appear here.</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Tab 4: Category Analytics -->
+    <div class="tab-pane fade" id="admin-tab-stats" role="tabpanel">
+      <div class="row g-4">
+        <div class="col-md-6">
+          <div class="bg-white p-4 rounded-4 border shadow-sm">
+            <h5 class="fw-bold text-dark mb-3">Item Category Breakdown</h5>
+            <div class="table-responsive">
+              <table class="table table-sm align-middle mb-0">
+                <thead class="table-light small text-muted">
+                  <tr>
+                    <th>Category</th>
+                    <th class="text-end">Total Reported Items</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% if category_stats %}
+                    {% for c in category_stats %}
+                      <tr>
+                        <td class="fw-semibold small">{{ c._id or 'Uncategorized' }}</td>
+                        <td class="text-end fw-bold">{{ c.count }}</td>
+                      </tr>
+                    {% endfor %}
+                  {% else %}
+                    <tr>
+                      <td colspan="2" class="text-center text-muted py-4 small">
+                        <i class="bi bi-bar-chart text-muted display-6 d-block mb-2"></i>
+                        No category data recorded yet
+                      </td>
+                    </tr>
+                  {% endif %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="bg-white p-4 rounded-4 border shadow-sm">
+            <h5 class="fw-bold text-dark mb-3">Campus Protocol Policies</h5>
+            <div class="small text-muted lh-base">
+              <p><strong>Safe Handover Protocol:</strong> All items over $50 require two-factor ID verification and physical custody transfer at Hamilton Library or Campus Center Security desks.</p>
+              <p><strong>Unclaimed Property Retention:</strong> Items remain open for 90 days before transfer to university public surplus or student affairs donation programs.</p>
+              <p><strong>Data Privacy:</strong> Student emails and phone numbers are masked on public feeds. Only authorized claim staff and the listing reporter can view verification proofs.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

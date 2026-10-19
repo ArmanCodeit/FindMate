@@ -1,0 +1,602 @@
+{% extends "base.html" %}
+
+{% block title %}{{ item.title }} — FindMate Campus Registry{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Breadcrumbs & Share/Save Row (Image 3 Top) -->
+  <div class="fm-breadcrumbs-bar">
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <a href="{{ url_for('item.browse') }}" class="text-dark fw-bold text-decoration-none">
+        &larr; Back to Browse
+      </a>
+      <span class="text-muted">/</span>
+      <a href="{{ url_for('item.browse', category=item.category) }}" class="text-muted text-decoration-none">
+        {{ item.category or "Items" }}
+      </a>
+      <span class="text-muted">/</span>
+      <span class="text-muted">#{{ item.report_id or 'LM-4081' }}</span>
+    </div>
+
+    <div class="d-flex align-items-center gap-2">
+      <button type="button" class="fm-btn-outline py-1 px-3" onclick="if (navigator.share) { navigator.share({title: '{{ item.title }}', url: window.location.href}); } else { navigator.clipboard.writeText(window.location.href); alert('Listing link copied to clipboard!'); }">
+        <i class="bi bi-share me-1"></i> Share
+      </button>
+      <button type="button" class="fm-btn-outline py-1 px-3" onclick="alert('Item saved to your student watchlist!');">
+        <i class="bi bi-bookmark me-1"></i> Save
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Content 2 Columns (Image 3 Match) -->
+  <div class="row g-4 mb-5">
+    
+    <!-- Left Column: Photo & Physical Custody -->
+    <div class="col-lg-5">
+      
+      <!-- Main Photo Wrap -->
+      <div class="fm-detail-main-img-wrap">
+        <div class="position-absolute top-0 start-0 m-3 z-2">
+          <span class="badge bg-dark bg-opacity-75 text-white rounded-pill px-3 py-1 small text-uppercase fw-bold" style="letter-spacing: 0.04em;">
+            <i class="bi bi-lock-fill me-1"></i> {{ item.category or "CAMPUS ITEM" }}
+          </span>
+        </div>
+
+        <button type="button" class="fm-img-zoom-btn" title="View Full Photo" onclick="window.open(document.getElementById('detail-main-img').src, '_blank');">
+          <i class="bi bi-zoom-in"></i>
+        </button>
+
+        {% if item.image_filename %}
+          <img src="{{ url_for('static', filename='uploads/' + item.image_filename) }}" alt="{{ item.title }}" id="detail-main-img" class="fm-detail-main-img" onerror="this.parentElement.innerHTML='<div class=\'fm-no-image-placeholder\' style=\'min-height: 380px;\'><i class=\'bi bi-box-seam fs-1\'></i><span>Image unavailable</span></div>'">
+        {% else %}
+          <div class="fm-no-image-placeholder" style="min-height: 380px;">
+            <i class="bi bi-box-seam fs-1"></i>
+            <span>No photo uploaded for this report</span>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Thumbnail Strip (Visual Reference) -->
+      <div class="fm-gallery-strip">
+        {% if item.image_filename %}
+          <div class="fm-gallery-thumb active" data-src="{{ url_for('static', filename='uploads/' + item.image_filename) }}">
+            <img src="{{ url_for('static', filename='uploads/' + item.image_filename) }}" alt="{{ item.title }} - Main View">
+          </div>
+          {% if item.gallery_images %}
+            {% for gal in item.gallery_images %}
+              <div class="fm-gallery-thumb" data-src="{{ url_for('static', filename='uploads/' + gal) }}">
+                <img src="{{ url_for('static', filename='uploads/' + gal) }}" alt="{{ item.title }} - Angle {{ loop.index + 1 }}">
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="fm-gallery-thumb" data-src="{{ url_for('static', filename='uploads/' + item.image_filename) }}">
+              <img src="{{ url_for('static', filename='uploads/' + item.image_filename) }}" alt="{{ item.title }} - Side Angle">
+            </div>
+            <div class="fm-gallery-thumb" data-src="{{ url_for('static', filename='uploads/' + item.image_filename) }}">
+              <img src="{{ url_for('static', filename='uploads/' + item.image_filename) }}" alt="{{ item.title }} - Detail View">
+            </div>
+            <div class="fm-gallery-thumb" data-src="{{ url_for('static', filename='uploads/' + item.image_filename) }}">
+              <img src="{{ url_for('static', filename='uploads/' + item.image_filename) }}" alt="{{ item.title }} - Feature View">
+            </div>
+          {% endif %}
+        {% else %}
+          <div class="fm-gallery-thumb active">
+            <div class="fm-thumb-empty"><i class="bi bi-camera"></i></div>
+          </div>
+          <div class="fm-gallery-thumb">
+            <div class="fm-thumb-empty"><i class="bi bi-camera"></i></div>
+          </div>
+          <div class="fm-gallery-thumb">
+            <div class="fm-thumb-empty"><i class="bi bi-camera"></i></div>
+          </div>
+          <div class="fm-gallery-thumb">
+            <div class="fm-thumb-empty"><i class="bi bi-camera"></i></div>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Physical Custody Card (Image 3 Left Bottom) -->
+      <div class="fm-custody-card">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <div class="d-flex align-items-center gap-2">
+            <span class="fm-pill-badge fm-badge-cyan">
+              <i class="bi bi-building-check me-1"></i> Physical Custody
+            </span>
+          </div>
+          <span class="badge bg-light text-muted border rounded-pill px-2 py-1 small">
+            Staff Monitored
+          </span>
+        </div>
+
+        <div class="d-flex align-items-start gap-3 mb-3">
+          <div class="rounded-3 bg-primary bg-opacity-10 text-primary p-2 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+            <i class="bi bi-building fs-4"></i>
+          </div>
+          <div>
+            <h6 class="fw-bold mb-1 text-dark">{{ item.location or "Hamilton Central Library" }}</h6>
+            <div class="text-muted small">Ground Floor, Security &amp; Intake Counter</div>
+            <div class="badge bg-primary-subtle text-primary mt-1 fw-semibold">
+              <i class="bi bi-shield-lock-fill me-1"></i> Held securely in Campus Intake Hub
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex align-items-center justify-content-between pt-2 border-top small text-muted">
+          <span><i class="bi bi-clock me-1"></i> Hours: 8:00 AM &ndash; 10:00 PM</span>
+          <a href="{{ url_for('item.browse', building=item.location) }}" class="text-teal fw-bold text-decoration-none">
+            Campus Map <i class="bi bi-arrow-up-right"></i>
+          </a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right Column: Item Information & Primary Actions -->
+    <div class="col-lg-7">
+      
+      <!-- Header Badges -->
+      <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+        <span class="fm-badge-tag fm-badge-{{ item.report_type }}">
+          &bull; {{ item.report_type }} ITEM
+        </span>
+        <span class="fm-pill-badge fm-badge-gray">
+          #{{ item.report_id or 'LM-4081' }}
+        </span>
+        <span class="text-teal small fw-bold ms-auto">
+          <i class="bi bi-clock-history me-1"></i> Reported {{ item.created_at|time_ago }}
+        </span>
+      </div>
+
+      <!-- Item Title & Subtitle -->
+      <h1 class="h2 fw-bold text-dark mb-1">{{ item.title }}</h1>
+      <p class="text-muted small mb-3">
+        Reported in the area of {{ item.location }}. Registered to FindMate campus registry.
+      </p>
+
+      <!-- 4 Column Meta Grid (Image 3 Match) -->
+      <div class="fm-meta-grid">
+        <div class="fm-meta-box">
+          <div class="fm-meta-label">Category</div>
+          <div class="fm-meta-value">{{ item.category or "General" }}</div>
+        </div>
+        <div class="fm-meta-box">
+          <div class="fm-meta-label">Date {{ 'Missing' if item.report_type == 'lost' else 'Found' }}</div>
+          <div class="fm-meta-value">{{ item.date_lost_or_found|format_date }}</div>
+        </div>
+        <div class="fm-meta-box">
+          <div class="fm-meta-label">Building</div>
+          <div class="fm-meta-value">{{ item.location or "Campus" }}</div>
+        </div>
+        <div class="fm-meta-box">
+          <div class="fm-meta-label">Claim Status</div>
+          <div class="fm-meta-value {{ 'text-success' if item.resolution_status == 'open' else 'text-warning' }}">
+            {{ item.resolution_status|capitalize }} Report
+          </div>
+        </div>
+      </div>
+
+      <!-- Detailed Description -->
+      <div class="bg-white p-4 rounded-4 border shadow-sm mb-3">
+        <div class="d-flex align-items-center gap-2 fw-bold text-dark mb-2">
+          <i class="bi bi-text-paragraph text-teal"></i> Detailed Description
+        </div>
+        <p class="text-muted small mb-3 lh-base">
+          {{ item.description }}
+        </p>
+
+        <!-- Unique Verification Clues (Image 3 Match) -->
+        {% if item.additional_details %}
+          <div class="fm-clues-box">
+            <div class="fw-bold text-dark small mb-2 d-flex align-items-center gap-1">
+              <i class="bi bi-lock-fill text-teal"></i> Unique Verification Clues
+            </div>
+            <div class="row g-2">
+              <div class="col-sm-6">
+                <div class="p-2 rounded bg-white border small text-muted">
+                  <i class="bi bi-check-circle-fill text-success me-1"></i> {{ item.additional_details }}
+                </div>
+              </div>
+              <div class="col-sm-6">
+                <div class="p-2 rounded bg-white border small text-muted">
+                  <i class="bi bi-geo-alt-fill text-teal me-1"></i> Verified intake marker on campus record
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Verified Student Reporter Card (Image 3 Match) -->
+      <div class="fm-reporter-card">
+        <div class="d-flex align-items-center gap-3">
+          <div class="fm-avatar-initials" style="width: 44px; height: 44px; font-size: 1rem;">
+            {{ item.reporter.full_name[:2].upper() if item.reporter else "FM" }}
+          </div>
+          <div>
+            <div class="fw-bold text-dark d-flex align-items-center gap-1">
+              {{ item.reporter.full_name if item.reporter else "Campus Student" }}
+              <span class="badge bg-success-subtle text-success rounded-pill px-2 py-0" style="font-size: 0.68rem;">Verified Student</span>
+            </div>
+            <div class="text-muted small" style="font-size: 0.76rem;">
+              {{ campus_name }}{% if item.reporter and item.reporter.student_id %} &bull; Student ID #***{{ item.reporter.student_id[-3:] }}{% endif %}
+            </div>
+          </div>
+        </div>
+
+        <span class="fm-pill-badge fm-badge-blue">
+          <i class="bi bi-gem"></i> Campus Trust: 98%
+        </span>
+      </div>
+
+      <!-- Recognize this item? Claim CTA Box (Image 3 Match) -->
+      <div class="fm-claim-box">
+        <h5 class="fw-bold text-dark mb-1">Recognize this {{ item.category|lower or 'item' }}?</h5>
+        <p class="text-muted small mb-3">
+          {% if item.report_type == 'found' %}
+            Claim this item or help connect the finder with campus staff.
+          {% else %}
+            Help return this item to the owner safely through verified intake.
+          {% endif %}
+        </p>
+
+        {% if item.resolution_status in ['claimed', 'resolved'] %}
+          <div class="alert alert-secondary py-3 text-center rounded-pill fw-semibold mb-3">
+            <i class="bi bi-check-circle-fill text-success me-1"></i> This item has already been {{ item.resolution_status }}.
+          </div>
+        {% elif is_owner or is_admin %}
+          <div class="d-flex gap-2 mb-3">
+            <a href="{{ url_for('item.edit_item', item_id=item._id) }}" class="btn btn-outline-primary rounded-pill w-50 fw-semibold">
+              <i class="bi bi-pencil-square me-1"></i> Edit Report
+            </a>
+            <form action="{{ url_for('item.toggle_resolve', item_id=item._id) }}" method="POST" class="w-50 m-0">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-success rounded-pill w-100 fw-semibold">
+                <i class="bi bi-check-lg me-1"></i> Mark Resolved
+              </button>
+            </form>
+          </div>
+        {% else %}
+          <button type="button" class="btn btn-lg w-100 text-white fw-bold py-3 rounded-pill shadow-sm mb-3" style="background-color: var(--fm-teal);" data-bs-toggle="modal" data-bs-target="#claimModal">
+            🎉 {% if item.report_type == 'found' %}I Think This Is Mine!{% else %}I Found This Item{% endif %} 🎉
+          </button>
+        {% endif %}
+
+        <!-- Quick Action Sub-buttons -->
+        <div class="d-flex align-items-center justify-content-around flex-wrap gap-2 text-muted small pt-2 border-top">
+          <button type="button" class="btn btn-link btn-sm text-decoration-none text-muted p-0" onclick="alert('Item added to your watchlist!');">
+            <i class="bi bi-eye me-1"></i> Watch This Listing
+          </button>
+          <span>&bull;</span>
+          <a href="{{ url_for('item.faq') }}#support" class="text-decoration-none text-muted">
+            <i class="bi bi-chat-dots me-1"></i> Ask Question to Reporter
+          </a>
+          <span>&bull;</span>
+          <button type="button" class="btn btn-link btn-sm text-decoration-none text-muted p-0" onclick="alert('Thank you. A moderation flag has been submitted to campus administrators.');">
+            <i class="bi bi-flag me-1"></i> Report Inaccuracy
+          </button>
+        </div>
+      </div>
+
+      <!-- FindMate Safe Handover Protocol Card -->
+      <div class="fm-safe-protocol-card">
+        <div class="rounded-circle bg-teal bg-opacity-10 text-teal p-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; min-width: 38px;">
+          <i class="bi bi-shield-lock-fill fs-5 text-teal"></i>
+        </div>
+        <div class="small">
+          <strong class="text-dark d-block mb-1">FindMate Safe Handover Protocol</strong>
+          <span class="text-muted">
+            Never share passwords, personal addresses, or financial details. High-value exchanges can also be mediated at the University Campus Safety Police Station on College Avenue.
+          </span>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Bottom Section: Nearby Items (Image 3 Bottom) -->
+  {% if nearby_items %}
+    <div class="pt-4 border-top">
+      <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+          <span class="text-danger small fw-bold" style="letter-spacing: 0.05em; font-size: 0.72rem;">
+            <i class="bi bi-record-circle-fill"></i> Other Items Lost &amp; Found Nearby
+          </span>
+          <h3 class="h4 fw-bold mb-0">Reported in {{ item.location or 'Campus' }} over the last 48 hours</h3>
+        </div>
+        <a href="{{ url_for('item.browse', building=item.location) }}" class="text-danger fw-bold small text-decoration-none">
+          View All Items &rarr;
+        </a>
+      </div>
+
+      <div class="row g-4">
+        {% for near in nearby_items %}
+          <div class="col-xl-3 col-lg-4 col-sm-6">
+            <div class="fm-card h-100 d-flex flex-column">
+              <div class="fm-card-img-wrap">
+                <span class="fm-card-floating-badge fm-badge-tag fm-badge-{{ near.report_type }}">
+                  &bull; {{ near.report_type }}
+                </span>
+                {% if near.image_filename %}
+                  <img src="{{ url_for('static', filename='uploads/' + near.image_filename) }}" alt="{{ near.title }}" class="fm-card-img">
+                {% else %}
+                  <div class="fm-no-image-placeholder">
+                    <i class="bi bi-box-seam"></i>
+                    <span>No photo</span>
+                  </div>
+                {% endif %}
+              </div>
+              <div class="fm-card-body flex-grow-1">
+                <span class="fm-card-category-tag fm-cat-default">{{ near.category or 'CAMPUS' }}</span>
+                <h4 class="fm-card-title">{{ near.title }}</h4>
+                <div class="fm-card-meta">
+                  <div class="fm-card-meta-row"><i class="bi bi-geo-alt text-teal"></i> {{ near.location }}</div>
+                  <div class="fm-card-meta-row"><i class="bi bi-clock"></i> {{ near.created_at|time_ago }}</div>
+                </div>
+              </div>
+              <div class="fm-card-footer">
+                <span class="fm-card-ref">Ref {{ near.report_id or '#LM-4081' }}</span>
+                <a href="{{ url_for('item.item_details', item_id=near._id) }}" class="fm-card-link-red">
+                  Details &rarr;
+                </a>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+</div>
+
+<!-- Claim Request Modal with Camera Capture & Private Photo Verification -->
+<div class="modal fade" id="claimModal" tabindex="-1" aria-labelledby="claimModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0 shadow">
+      
+      <div class="modal-header border-bottom px-4 py-3">
+        <h5 class="modal-title fw-bold" id="claimModalLabel">
+          <i class="bi bi-patch-check-fill text-teal me-2"></i> Submit Claim Request
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      {% if not current_user %}
+        <div class="modal-body p-4 text-center">
+          <i class="bi bi-person-lock text-muted display-4 mb-3 d-block"></i>
+          <h5 class="fw-bold">Student Authentication Required</h5>
+          <p class="text-muted small">Please sign in with your campus account before claiming an item so staff can verify your identity.</p>
+          <a href="{{ url_for('auth.login', next=request.path) }}" class="fm-btn-coral mt-2">
+            Log In with Campus Account
+          </a>
+        </div>
+      {% else %}
+        <form action="{{ url_for('claim.submit_claim', item_id=item._id) }}" method="POST" enctype="multipart/form-data" id="claimSubmitForm">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="verification_photo_data" id="claimPhotoData">
+          
+          <div class="modal-body p-4">
+            <div class="mb-3">
+              <label class="form-label fw-semibold small">Claiming Item</label>
+              <input type="text" class="form-control bg-light rounded-3" value="{{ item.title }} ({{ item.report_id }})" readonly>
+            </div>
+
+            <!-- Verification Photo Evidence Section -->
+            <div class="mb-3 p-3 bg-light rounded-3 border">
+              <div class="d-flex align-items-center justify-content-between mb-2">
+                <label class="form-label fw-bold small text-dark mb-0">
+                  <i class="bi bi-camera-fill text-teal me-1"></i> Private Verification Photo *
+                </label>
+                <div class="btn-group btn-group-sm" role="group">
+                  <button type="button" class="btn btn-outline-success active" id="tabCameraBtn">
+                    <i class="bi bi-camera me-1"></i> Camera
+                  </button>
+                  <button type="button" class="btn btn-outline-secondary" id="tabUploadBtn">
+                    <i class="bi bi-upload me-1"></i> Upload
+                  </button>
+                </div>
+              </div>
+
+              <!-- Camera Capture Area -->
+              <div id="cameraCaptureArea">
+                <div id="cameraAlert" class="alert alert-warning py-1 px-2 small mb-2" style="display: none;"></div>
+                
+                <div class="text-center mb-2">
+                  <video id="claimVideo" autoplay playsinline class="rounded-3 w-100 bg-dark shadow-sm" style="max-height: 220px; object-fit: cover; display: none;"></video>
+                  <canvas id="claimCanvas" style="display: none;"></canvas>
+                </div>
+
+                <div class="d-flex justify-content-center gap-2 mb-2">
+                  <button type="button" id="btnStartCamera" class="btn btn-sm btn-outline-success rounded-pill px-3">
+                    <i class="bi bi-camera-video me-1"></i> Open Device Camera
+                  </button>
+                  <button type="button" id="btnSnapPhoto" class="btn btn-sm btn-success rounded-pill px-3" style="display: none;">
+                    <i class="bi bi-camera-fill me-1"></i> Capture Photo
+                  </button>
+                  <button type="button" id="btnRetakePhoto" class="btn btn-sm btn-outline-warning rounded-pill px-3" style="display: none;">
+                    <i class="bi bi-arrow-repeat me-1"></i> Retake Photo
+                  </button>
+                </div>
+              </div>
+
+              <!-- Device Upload Area -->
+              <div id="deviceUploadArea" style="display: none;">
+                <input type="file" name="verification_photo_file" id="claimPhotoFile" class="form-control form-control-sm" accept="image/png, image/jpeg, image/jpg, image/webp" capture="environment">
+                <div class="form-text text-muted small mt-1">JPEG, PNG, or WebP (max 5MB). Photo is stored privately.</div>
+              </div>
+
+              <!-- Photo Preview -->
+              <div id="photoPreviewWrap" class="text-center mt-2" style="display: none;">
+                <img id="photoPreviewImg" class="rounded-3 border shadow-sm img-fluid" style="max-height: 180px;" alt="Verification Evidence Preview">
+                <div class="text-success small fw-semibold mt-1">
+                  <i class="bi bi-check-circle-fill me-1"></i> Photo ready for submission
+                </div>
+              </div>
+
+              <div class="text-muted mt-2" style="font-size: 0.75rem;">
+                <i class="bi bi-lock-fill text-secondary me-1"></i> <strong>Strict Privacy:</strong> This photo will only be visible to the item owner and campus administrators for verification.
+              </div>
+            </div>
+
+            <!-- Mobile Phone Number Check -->
+            {% if not current_user.phone_number %}
+              <div class="mb-3 p-3 bg-light rounded-3 border">
+                <label class="form-label fw-bold small text-dark d-flex align-items-center gap-1">
+                  <i class="bi bi-telephone-fill text-teal"></i> Your 10-Digit Mobile Number *
+                </label>
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text bg-white text-muted">+91</span>
+                  <input type="tel" name="phone_number" class="form-control" placeholder="9876543210" pattern="[6789][0-9]{9}" maxlength="10" required>
+                </div>
+                <div class="form-text text-muted small">
+                  Your phone number remains masked and will only be revealed if the owner approves your verification photo.
+                </div>
+              </div>
+            {% else %}
+              <div class="mb-3 p-2 bg-light rounded-3 border d-flex align-items-center justify-content-between small text-muted">
+                <span><i class="bi bi-shield-check text-teal me-1"></i> Your Mobile Number: <strong>{{ current_user.phone_number|mask_phone }}</strong></span>
+                <span class="badge bg-secondary-subtle text-secondary">Masked until approval</span>
+              </div>
+            {% endif %}
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold small">Your Message / Background *</label>
+              <textarea name="message" class="form-control rounded-3" rows="2" placeholder="e.g. I found this item near the library lobby and took a photo of the serial code..." required minlength="5"></textarea>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold small">Proof of Ownership / Identifying Details *</label>
+              <textarea name="verification_details" class="form-control rounded-3" rows="2" placeholder="Describe private features, stickers, serial numbers, screen wallpapers, or scratches to prove ownership..." required minlength="5"></textarea>
+            </div>
+
+            <div class="p-2 rounded bg-light border small text-muted">
+              <i class="bi bi-info-circle text-teal me-1"></i>
+              Upon photo approval, mutual contact numbers will unlock for safe coordination and pickup.
+            </div>
+          </div>
+
+          <div class="modal-footer border-top px-4 py-3">
+            <button type="button" class="btn btn-light border btn-sm rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="fm-btn-coral py-2 px-4 btn-sm" id="btnSubmitClaim">
+              Submit Claim &amp; Photo
+            </button>
+          </div>
+        </form>
+
+        <script>
+        (function() {
+          let cameraStream = null;
+          const video = document.getElementById('claimVideo');
+          const canvas = document.getElementById('claimCanvas');
+          const photoDataInput = document.getElementById('claimPhotoData');
+          const fileInput = document.getElementById('claimPhotoFile');
+          const previewWrap = document.getElementById('photoPreviewWrap');
+          const previewImg = document.getElementById('photoPreviewImg');
+          const alertBox = document.getElementById('cameraAlert');
+          const btnStart = document.getElementById('btnStartCamera');
+          const btnSnap = document.getElementById('btnSnapPhoto');
+          const btnRetake = document.getElementById('btnRetakePhoto');
+          const tabCamera = document.getElementById('tabCameraBtn');
+          const tabUpload = document.getElementById('tabUploadBtn');
+          const cameraArea = document.getElementById('cameraCaptureArea');
+          const uploadArea = document.getElementById('deviceUploadArea');
+
+          function stopCamera() {
+            if (cameraStream) {
+              cameraStream.getTracks().forEach(track => track.stop());
+              cameraStream = null;
+            }
+            if (video) video.style.display = 'none';
+          }
+
+          if (tabCamera && tabUpload) {
+            tabCamera.addEventListener('click', () => {
+              tabCamera.classList.add('active', 'btn-outline-success');
+              tabCamera.classList.remove('btn-outline-secondary');
+              tabUpload.classList.remove('active', 'btn-outline-success');
+              tabUpload.classList.add('btn-outline-secondary');
+              cameraArea.style.display = 'block';
+              uploadArea.style.display = 'none';
+            });
+            tabUpload.addEventListener('click', () => {
+              tabUpload.classList.add('active', 'btn-outline-success');
+              tabUpload.classList.remove('btn-outline-secondary');
+              tabCamera.classList.remove('active', 'btn-outline-success');
+              tabCamera.classList.add('btn-outline-secondary');
+              uploadArea.style.display = 'block';
+              cameraArea.style.display = 'none';
+              stopCamera();
+            });
+          }
+
+          if (btnStart) {
+            btnStart.addEventListener('click', async () => {
+              alertBox.style.display = 'none';
+              try {
+                cameraStream = await navigator.mediaDevices.getUserMedia({
+                  video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
+                  audio: false
+                });
+                video.srcObject = cameraStream;
+                video.style.display = 'block';
+                btnStart.style.display = 'none';
+                btnSnap.style.display = 'inline-block';
+              } catch (err) {
+                alertBox.textContent = "Camera access denied or unavailable. Please use the Upload tab to choose a photo.";
+                alertBox.style.display = 'block';
+              }
+            });
+          }
+
+          if (btnSnap) {
+            btnSnap.addEventListener('click', () => {
+              canvas.width = video.videoWidth || 640;
+              canvas.height = video.videoHeight || 480;
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+              const dataUrl = canvas.toDataURL('image/png');
+              photoDataInput.value = dataUrl;
+              previewImg.src = dataUrl;
+              previewWrap.style.display = 'block';
+              btnSnap.style.display = 'none';
+              btnRetake.style.display = 'inline-block';
+              stopCamera();
+            });
+          }
+
+          if (btnRetake) {
+            btnRetake.addEventListener('click', () => {
+              photoDataInput.value = '';
+              previewWrap.style.display = 'none';
+              btnRetake.style.display = 'none';
+              btnStart.style.display = 'inline-block';
+            });
+          }
+
+          if (fileInput) {
+            fileInput.addEventListener('change', (e) => {
+              const file = e.target.files[0];
+              if (file) {
+                const reader = new FileReader();
+                reader.onload = (evt) => {
+                  previewImg.src = evt.target.result;
+                  previewWrap.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+              }
+            });
+          }
+
+          const claimModalEl = document.getElementById('claimModal');
+          if (claimModalEl) {
+            claimModalEl.addEventListener('hidden.bs.modal', stopCamera);
+          }
+        })();
+        </script>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+{% endblock %}

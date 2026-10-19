@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}Frequently Asked Questions — FindMate{% endblock %}
+
+{% block content %}
+<div class="container py-5 max-w-900 mx-auto" style="max-width: 900px;">
+  
+  <div class="text-center mb-5">
+    <div class="fm-pill-badge fm-badge-peach mb-2">
+      <i class="bi bi-question-circle-fill me-1"></i> Campus Knowledge Base
+    </div>
+    <h1 class="display-6 fw-bold text-dark">Frequently Asked <span class="text-coral">Questions</span></h1>
+    <p class="text-muted">Everything you need to know about reporting, finding, and safely retrieving belongings on campus.</p>
+  </div>
+
+  <div class="accordion accordion-flush bg-white rounded-4 border p-3 mb-5" style="border-color: var(--fm-border) !important; box-shadow: var(--fm-shadow-card);" id="faqAccordion">
+    
+    <!-- FAQ 1 -->
+    <div class="accordion-item border-bottom">
+      <h2 class="accordion-header" id="headingOne">
+        <button class="accordion-button fw-bold text-dark collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+          How do I report an item I lost on campus?
+        </button>
+      </h2>
+      <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#faqAccordion">
+        <div class="accordion-body text-muted small lh-base">
+          Log in to FindMate using your student or staff account and click <strong>"Report an Item"</strong>. Select <strong>"I Lost an Item"</strong>, enter details like brand, color, location where it was last seen, and upload a reference photo if available. When someone turns in a matching item, you will be notified.
+        </div>
+      </div>
+    </div>
+
+    <!-- FAQ 2 -->
+    <div class="accordion-item border-bottom">
+      <h2 class="accordion-header" id="headingTwo">
+        <button class="accordion-button fw-bold text-dark collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+          What should I do if I find someone's belongings?
+        </button>
+      </h2>
+      <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#faqAccordion">
+        <div class="accordion-body text-muted small lh-base">
+          Click <strong>"Report an Item"</strong> and choose <strong>"I Found an Item"</strong>. Take a clear photo, describe the building or hall where you discovered it, and indicate whether you turned it in to a campus desk (such as the Hamilton Library Hub or Campus Center Information Counter) or are holding it safely.
+        </div>
+      </div>
+    </div>
+
+    <!-- FAQ 3 -->
+    <div class="accordion-item border-bottom">
+      <h2 class="accordion-header" id="headingThree">
+        <button class="accordion-button fw-bold text-dark collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+          How does the verification and claim process work?
+        </button>
+      </h2>
+      <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#faqAccordion">
+        <div class="accordion-body text-muted small lh-base">
+          To prevent fraudulent claims, anyone claiming an item must submit proof of ownership through our secure verification form. This can include describing a hidden sticker, lockscreen wallpaper, serial number, scratch, or entering the device passcode in person during handoff. The reporter or campus desk reviews the proof before approving the handover.
+        </div>
+      </div>
+    </div>
+
+    <!-- FAQ 4 -->
+    <div class="accordion-item border-bottom">
+      <h2 class="accordion-header" id="headingFour">
+        <button class="accordion-button fw-bold text-dark collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+          Where do campus item handovers take place?
+        </button>
+      </h2>
+      <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#faqAccordion">
+        <div class="accordion-body text-muted small lh-base">
+          For student safety, all in-person exchanges are recommended to take place at designated <strong>Campus Safe Zones</strong>:
+          <ul class="mt-2 mb-0">
+            <li>Hamilton Central Library Hub — Main Security Desk (Ground Floor)</li>
+            <li>Campus Center Information Desk — Room 102</li>
+            <li>Public Safety Building — Front Reception (24/7)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAQ 5 -->
+    <div class="accordion-item border-bottom">
+      <h2 class="accordion-header" id="headingFive">
+        <button class="accordion-button fw-bold text-dark collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
+          Is my personal and contact information visible publicly?
+        </button>
+      </h2>
+      <div id="collapseFive" class="accordion-collapse collapse" aria-labelledby="headingFive" data-bs-parent="#faqAccordion">
+        <div class="accordion-body text-muted small lh-base">
+          No. FindMate masks personal email addresses and student phone numbers on the public registry. All initial contact is routed through our verified campus portal. Hidden verification details are strictly visible only to the listing creator and verified campus administrators.
+        </div>
+      </div>
+    </div>
+
+    <!-- FAQ 6 -->
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="headingSix">
+        <button class="accordion-button fw-bold text-dark collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSix" aria-expanded="false" aria-controls="collapseSix">
+          How long are found items kept on the registry?
+        </button>
+      </h2>
+      <div id="collapseSix" class="accordion-collapse collapse" aria-labelledby="headingSix" data-bs-parent="#faqAccordion">
+        <div class="accordion-body text-muted small lh-base">
+          Items remain actively listed for 90 days. Unclaimed high-value electronics and wallets are transferred to Campus Public Safety for formal state lost property custody.
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Contact & Support Card -->
+  <div class="p-4 p-md-5 rounded-4 border bg-white" style="border-color: var(--fm-border) !important; box-shadow: var(--fm-shadow-card);" id="support">
+    <div class="row g-4 align-items-center">
+      <div class="col-md-8">
+        <h4 class="fw-bold text-dark mb-1">Still need help or have an emergency?</h4>
+        <p class="text-muted small mb-3">Our campus safety officers and lost &amp; found student coordinators are here to assist you.</p>
+        <div class="d-flex flex-wrap gap-3 small text-muted">
+          <div><i class="bi bi-telephone-fill text-success me-1"></i> (555) 019-2834</div>
+          <div><i class="bi bi-envelope-fill text-success me-1"></i> lostandfound@university.edu</div>
+          <div><i class="bi bi-clock-fill text-success me-1"></i> Mon–Fri: 8:00 AM – 6:00 PM</div>
+        </div>
+      </div>
+      <div class="col-md-4 text-md-end">
+        <a href="mailto:lostandfound@university.edu" class="fm-btn-pill-coral">
+          <i class="bi bi-envelope"></i> Contact Support
+        </a>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

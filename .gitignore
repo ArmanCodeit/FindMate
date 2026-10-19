@@ -1,0 +1,49 @@
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Node / JS artifacts (if any)
+node_modules/
+dist/
+build/
+.next/
+
+# Operating System files
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp
+
+# Logs
+*.log
+
+# Local databases and runtime file stores
+local_mongo_data/
+mongodb_data/
+private_uploads/*
+!private_uploads/.gitkeep
+!private_uploads/verification_photos/
+private_uploads/verification_photos/*
+!private_uploads/verification_photos/.gitkeep
+
+# Local user uploads
+static/uploads/*
+!static/uploads/.gitkeep

@@ -1,0 +1,116 @@
+/* ==========================================================================
+   FindMate - Responsive CSS Adaptations
+   Mobile & Tablet viewports support for the redesigned UI
+   ========================================================================== */
+
+@media (max-width: 991.98px) {
+  .fm-hero-title {
+    font-size: 2.6rem;
+  }
+
+  .fm-browse-title {
+    font-size: 2.2rem;
+  }
+
+  .fm-nav-pill-container {
+    display: none !important;
+  }
+
+  .fm-three-features-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .fm-meta-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .fm-cta-banner {
+    padding: 2rem 1.5rem;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .fm-navbar {
+    padding: 0.6rem 0;
+  }
+
+  .fm-brand-title {
+    font-size: 1.15rem;
+  }
+
+  .fm-brand-sub {
+    display: none;
+  }
+
+  .fm-hero-title {
+    font-size: 2.15rem;
+  }
+
+  .fm-search-capsule {
+    flex-direction: column;
+    border-radius: 20px;
+    padding: 0.85rem;
+    gap: 0.75rem;
+  }
+
+  .fm-search-capsule .fm-search-section {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #EBE5DB;
+    padding-bottom: 0.5rem;
+    padding-right: 0;
+  }
+
+  .fm-search-capsule .fm-search-section:last-of-type {
+    border-bottom: none;
+  }
+
+  .fm-search-btn-pill {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .fm-hero-action-row {
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+
+  .fm-filter-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .fm-form-card {
+    padding: 1.25rem;
+  }
+
+  .fm-type-toggle-wrap {
+    flex-direction: column;
+  }
+
+  .fm-type-toggle-pill {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .fm-footer {
+    padding: 2.5rem 0 1.5rem;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .fm-user-pill .fm-user-meta {
+    display: none;
+  }
+
+  .fm-meta-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .fm-pagination-wrap {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+}

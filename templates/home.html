@@ -1,0 +1,329 @@
+{% extends "base.html" %}
+
+{% block title %}FindMate — Lost Something? Let's Go Find It!{% endblock %}
+
+{% block content %}
+<div class="container fm-hero-section">
+  
+  <!-- Hero Section -->
+  <div class="row g-4 align-items-center mb-5">
+    
+    <!-- Left Hero Column -->
+    <div class="col-lg-7">
+      
+      <!-- Top Micro Tags -->
+      <div class="d-flex align-items-center gap-2 mb-3">
+        <span class="fm-pill-badge fm-badge-peach">
+          <i class="bi bi-tag-fill me-1"></i> Campus Lost &amp; Found Portal
+        </span>
+        <span class="fm-pill-badge fm-badge-cyan">
+          <i class="bi bi-broadcast me-1"></i> Live Sync
+        </span>
+      </div>
+
+      <!-- Main Headline -->
+      <h1 class="fm-hero-title">
+        <span class="text-coral">Lost Something?</span><br>
+        <span class="text-indigo">Let's Go Find It!</span>
+      </h1>
+
+      <p class="fm-hero-subtitle">
+        Don't panic! Over 2,400 keys, headsets, water bottles, and IDs are safely reunited across campus dorms, labs, and lecture halls each month.
+      </p>
+
+      <!-- Multi-Part Floating Search Capsule Bar -->
+      <form action="{{ url_for('item.browse') }}" method="GET" class="fm-search-capsule">
+        
+        <!-- Section: What -->
+        <div class="fm-search-section">
+          <i class="bi bi-grid text-muted"></i>
+          <div class="w-100">
+            <div class="fm-section-label">What</div>
+            <select name="category" class="form-select">
+              <option value="">All Categories</option>
+              {% for cat in categories %}
+                <option value="{{ cat }}">{{ cat }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <!-- Section: Where -->
+        <div class="fm-search-section">
+          <i class="bi bi-geo-alt text-muted"></i>
+          <div class="w-100">
+            <div class="fm-section-label">Where</div>
+            <select name="building" class="form-select">
+              <option value="">Any Location</option>
+              {% for loc in locations %}
+                <option value="{{ loc }}">{{ loc }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <!-- Section: When -->
+        <div class="fm-search-section">
+          <i class="bi bi-calendar3 text-muted"></i>
+          <div class="w-100">
+            <div class="fm-section-label">When</div>
+            <select name="time_window" class="form-select">
+              <option value="">Recent 7 Days</option>
+              <option value="today">Today</option>
+              <option value="week">Past Week</option>
+              <option value="month">Past Month</option>
+              <option value="all">All Time</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Search Button -->
+        <button type="submit" class="fm-search-btn-pill">
+          <i class="bi bi-search"></i> Search
+        </button>
+      </form>
+
+      <!-- Two Big Action Buttons -->
+      <div class="fm-hero-action-row">
+        <a href="{{ url_for('item.report_item', type='lost') }}" class="fm-hero-action-btn fm-hero-btn-lost">
+          <span> I Lost Something</span> <i class="bi bi-search ms-1"></i>
+        </a>
+        <a href="{{ url_for('item.report_item', type='found') }}" class="fm-hero-action-btn fm-hero-btn-found">
+          <span> I Found Something</span> <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+      </div>
+
+      <!-- Quick Jump Chips -->
+      <div class="fm-quick-jump-wrap">
+        <span class="fm-quick-jump-label">QUICK JUMP:</span>
+        <a href="{{ url_for('item.browse', q='Headphones') }}" class="fm-quick-chip">🎧 Headphones (28)</a>
+        <a href="{{ url_for('item.browse', category='Keys & Cards') }}" class="fm-quick-chip">🔑 Keys &amp; Lanyards (19)</a>
+        <a href="{{ url_for('item.browse', category='Water Bottles') }}" class="fm-quick-chip">🍶 Bottles (14)</a>
+        <a href="{{ url_for('item.browse', category='IDs & Wallets') }}" class="fm-quick-chip">🪪 Campus IDs (42)</a>
+      </div>
+
+    </div>
+
+    <!-- Right Hero Column (Illustration Card & How-It-Works) -->
+    <div class="col-lg-5">
+      
+      <!-- Campus Illustration Card -->
+      <div class="fm-hero-illustration-card">
+        <img src="{{ url_for('static', filename='images/campus_students_hero.jpg') }}" alt="Campus Students Community" class="fm-hero-illustration-img">
+        <div class="fm-return-rate-badge">
+          <i class="bi bi-check-circle-fill"></i> 97% Return rate this month
+        </div>
+      </div>
+
+      <!-- How It Works (3 Easy Steps) Card -->
+      <div class="fm-how-card">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-journal-check text-indigo fs-5"></i>
+            <h6 class="fw-bold mb-0">How it Works <span class="text-muted fw-normal small">(3 Easy Steps)</span></h6>
+          </div>
+          <a href="{{ url_for('item.faq') }}#how-it-works" class="text-indigo small fw-bold text-decoration-none">Learn More</a>
+        </div>
+
+        <div class="d-flex align-items-center justify-content-between">
+          
+          <!-- Step 1 -->
+          <div class="fm-how-step-item">
+            <div class="fm-how-step-icon" style="background-color: #FCEBE6; color: #D43833;">
+              <i class="bi bi-camera-fill"></i>
+            </div>
+            <div class="fw-bold small">1. Snap Photo</div>
+            <div class="text-muted" style="font-size: 0.72rem;">Quick snap</div>
+          </div>
+
+          <div class="fm-how-step-arrow">&rarr;</div>
+
+          <!-- Step 2 -->
+          <div class="fm-how-step-item">
+            <div class="fm-how-step-icon" style="background-color: #EEF2FF; color: #3A4DD0;">
+              <i class="bi bi-geo-alt-fill"></i>
+            </div>
+            <div class="fw-bold small">2. Tell Where</div>
+            <div class="text-muted" style="font-size: 0.72rem;">Tag building</div>
+          </div>
+
+          <div class="fm-how-step-arrow">&rarr;</div>
+
+          <!-- Step 3 -->
+          <div class="fm-how-step-item">
+            <div class="fm-how-step-icon" style="background-color: #E0F7F5; color: #007C6E;">
+              <i class="bi bi-hand-thumbs-up-fill"></i>
+            </div>
+            <div class="fw-bold small">3. Reunite!</div>
+            <div class="text-muted" style="font-size: 0.72rem;">Safe pickup</div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Section 2: Recently Lost & Found -->
+  <div class="mb-5">
+    
+    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <span class="text-danger small fw-bold" style="letter-spacing: 0.05em; font-size: 0.72rem;">
+            <i class="bi bi-record-circle-fill"></i> FRESH UPDATES
+          </span>
+        </div>
+        <h2 class="h3 fw-bold mb-0">Recently Lost &amp; Found</h2>
+      </div>
+
+      <!-- Quick Filter Tabs -->
+      <div class="d-flex gap-2 mt-3 mt-md-0">
+        <a href="{{ url_for('item.home', tab='All') }}" class="btn btn-sm {{ 'btn-dark' if active_tab == 'All' or not active_tab else 'btn-light border' }} rounded-pill px-3 fw-semibold">
+          All Items
+        </a>
+        <a href="{{ url_for('item.home', tab='lost') }}" class="btn btn-sm {{ 'btn-dark' if active_tab == 'lost' else 'btn-light border' }} rounded-pill px-3 fw-semibold">
+          Only Lost
+        </a>
+        <a href="{{ url_for('item.home', tab='found') }}" class="btn btn-sm {{ 'btn-dark' if active_tab == 'found' else 'btn-light border' }} rounded-pill px-3 fw-semibold">
+          Only Found
+        </a>
+      </div>
+    </div>
+
+    <!-- Cards Grid -->
+    {% if recent_items %}
+      <div class="row g-4 mb-4">
+        {% for item in recent_items %}
+          <div class="col-xl-3 col-lg-4 col-sm-6">
+            <div class="fm-card h-100 d-flex flex-column">
+              
+              <!-- Card Image & Floating Badge -->
+              <div class="fm-card-img-wrap">
+                <span class="fm-card-floating-badge fm-badge-tag fm-badge-{{ item.report_type }}">
+                  &bull; {{ item.report_type }}
+                </span>
+                {% if item.image_filename %}
+                  <img src="{{ url_for('static', filename='uploads/' + item.image_filename) }}" alt="{{ item.title }}" class="fm-card-img" onerror="this.parentElement.innerHTML='<div class=\'fm-no-image-placeholder\'><i class=\'bi bi-box-seam\'></i><span>No photo</span></div>'">
+                {% else %}
+                  <div class="fm-no-image-placeholder">
+                    <i class="bi bi-box-seam"></i>
+                    <span>No photo uploaded</span>
+                  </div>
+                {% endif %}
+              </div>
+
+              <!-- Card Body -->
+              <div class="fm-card-body flex-grow-1">
+                <span class="fm-card-category-tag fm-cat-{{ item.category|lower|replace(' ', '-') if item.category else 'default' }}">
+                  {{ item.category or "CAMPUS ITEM" }}
+                </span>
+                <h3 class="fm-card-title">{{ item.title }}</h3>
+                <div class="fm-card-meta">
+                  <div class="fm-card-meta-row">
+                    <i class="bi bi-geo-alt text-teal"></i> {{ item.location or "Campus Center" }}
+                  </div>
+                  <div class="fm-card-meta-row">
+                    <i class="bi bi-clock"></i> {{ 'Lost' if item.report_type == 'lost' else 'Found' }}: {{ item.date_lost_or_found|format_date }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card Footer -->
+              <div class="fm-card-footer">
+                <span class="fm-card-ref">Ref {{ item.report_id or '#LM-4081' }}</span>
+                <a href="{{ url_for('item.item_details', item_id=item._id) }}" class="{{ 'fm-card-link-red' if item.report_type == 'lost' else 'fm-card-link-teal' }}">
+                  {% if item.report_type == 'lost' %}I have this &rarr;{% else %}Claim it &rarr;{% endif %}
+                </a>
+              </div>
+
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+      <!-- Browse All Centered Button -->
+      <div class="text-center my-4">
+        <a href="{{ url_for('item.browse') }}" class="btn btn-light border rounded-pill px-4 py-2 fw-bold text-dark shadow-sm">
+          Browse All 140+ Campus Items &rarr;
+        </a>
+      </div>
+
+    {% else %}
+      <div class="p-5 text-center bg-white rounded-4 border my-4">
+        <i class="bi bi-inbox text-muted display-4 mb-3 d-block"></i>
+        <h5 class="fw-bold">No items logged recently in this category</h5>
+        <p class="text-muted small">Be the first to report an item and help reunite campus belongings.</p>
+        <a href="{{ url_for('item.report_item') }}" class="fm-btn-coral mt-2">
+          <i class="bi bi-plus-square"></i> Report an Item
+        </a>
+      </div>
+    {% endif %}
+
+  </div>
+
+  <!-- Section 3: Campus Heroes & Featured Success Story (Image 2 Bottom) -->
+  <div class="row g-4 mb-4">
+    
+    <!-- Left: Students Helping Students -->
+    <div class="col-lg-7">
+      <div class="bg-white p-4 p-md-5 rounded-4 border shadow-sm h-100 d-flex flex-column justify-content-between">
+        <div>
+          <span class="fm-pill-badge fm-badge-blue mb-2">
+            <i class="bi bi-award-fill me-1"></i> CAMPUS HEROES PROGRAM
+          </span>
+          <h2 class="h3 fw-bold text-dark mb-2">Students Helping Students</h2>
+          <p class="text-muted mb-4 pe-lg-3">
+            Meet our top campus finders who turned in missing laptops, wallets, and cherished notebooks this term. Kindness travels fast when good people step up!
+          </p>
+        </div>
+
+        <div class="d-flex align-items-center gap-3 pt-3 border-top">
+          <div class="d-flex" style="margin-left: 8px;">
+            <div class="rounded-circle border border-2 border-white shadow-sm bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style="width: 40px; height: 40px; margin-left: -8px; font-size: 0.8rem;">RS</div>
+            <div class="rounded-circle border border-2 border-white shadow-sm bg-success text-white d-flex align-items-center justify-content-center fw-bold" style="width: 40px; height: 40px; margin-left: -8px; font-size: 0.8rem;">DK</div>
+            <div class="rounded-circle border border-2 border-white shadow-sm bg-warning text-dark d-flex align-items-center justify-content-center fw-bold" style="width: 40px; height: 40px; margin-left: -8px; font-size: 0.8rem;">ML</div>
+            <div class="rounded-circle border border-2 border-white shadow-sm bg-danger text-white d-flex align-items-center justify-content-center fw-bold" style="width: 40px; height: 40px; margin-left: -8px; font-size: 0.8rem;">+</div>
+          </div>
+          <div>
+            <div class="fw-bold small text-dark">320+ Student Volunteers</div>
+            <div class="text-muted small" style="font-size: 0.75rem;"><i class="bi bi-patch-check-fill text-success"></i> Verified campus members</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Featured Success Story -->
+    <div class="col-lg-5">
+      <div class="bg-white p-4 p-md-5 rounded-4 border shadow-sm h-100 d-flex flex-column justify-content-between">
+        <div>
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <span class="fm-pill-badge fm-badge-peach">
+              <i class="bi bi-star-fill text-warning me-1"></i> Featured Success Story
+            </span>
+            <span class="text-muted small">2h ago</span>
+          </div>
+
+          <h5 class="fw-bold text-dark mt-2 mb-2">&ldquo;Found my thesis flash drive in 15 minutes!&rdquo;</h5>
+          <p class="text-muted small mb-3">
+            &ldquo;Left my entire semester project on a desk in the library. Checked FindMate, and someone had already turned it into the desk staff with a picture!&rdquo;
+          </p>
+        </div>
+
+        <div class="d-flex align-items-center justify-content-between pt-3 border-top">
+          <div class="small">
+            <div class="fw-bold text-dark">David K.</div>
+            <div class="text-muted" style="font-size: 0.75rem;">Senior Architecture</div>
+          </div>
+          <a href="{{ url_for('item.report_item') }}" class="text-danger small fw-bold text-decoration-none">
+            Report Item &rarr;
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}
