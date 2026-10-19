@@ -15,7 +15,7 @@ import streamlit as st
 # 1. Sync Streamlit Cloud Secrets into os.environ
 if hasattr(st, "secrets") and st.secrets:
     for key, val in st.secrets.items():
-        if isinstance(val, str) and key not in os.environ:
+        if isinstance(val, str):
             os.environ[key] = val
 
 # Also load from .env if running locally
@@ -26,6 +26,20 @@ except ImportError:
     pass
 
 from config import Config
+# Propagate environment variables into Config
+if os.getenv("MONGO_URI"):
+    Config.MONGO_URI = os.getenv("MONGO_URI")
+if os.getenv("DB_NAME"):
+    Config.DB_NAME = os.getenv("DB_NAME")
+if os.getenv("SECRET_KEY"):
+    Config.SECRET_KEY = os.getenv("SECRET_KEY")
+if os.getenv("CLOUDINARY_CLOUD_NAME"):
+    Config.CLOUDINARY_CLOUD_NAME = os.getenv("CLOUDINARY_CLOUD_NAME")
+if os.getenv("CLOUDINARY_API_KEY"):
+    Config.CLOUDINARY_API_KEY = os.getenv("CLOUDINARY_API_KEY")
+if os.getenv("CLOUDINARY_API_SECRET"):
+    Config.CLOUDINARY_API_SECRET = os.getenv("CLOUDINARY_API_SECRET")
+
 from database.connection import get_db, check_db_connection
 from services.item_service import ItemService, CATEGORIES, LOCATIONS
 from services.auth_service import AuthService
@@ -100,7 +114,27 @@ st.markdown("""
 # Check DB Connection
 db_connected, db_msg = check_db_connection()
 if not db_connected:
-    st.warning(f"⚠️ Database connection status: {db_msg}. If running on Streamlit Cloud, please set your MongoDB Atlas `MONGO_URI` in **Streamlit App Settings → Secrets**.")
+    st.error("⚠️ **Database Connection Required**")
+    st.markdown("""
+    Streamlit Cloud is running in a remote container where **`localhost:27017` does not exist**.
+    To connect your live Streamlit Cloud app to a database, you need to add your secrets in the Streamlit Cloud dashboard.
+    
+    ---
+    ### ⚙️ Quick Setup (Takes 1-2 minutes):
+    1. In the bottom-right corner of this screen, click **Manage app** (or go to your [Streamlit Cloud Dashboard](https://share.streamlit.io/)).
+    2. Click the three dots `⋮` next to your app and select **Settings → Secrets**.
+    3. Paste the following configuration (replace `<username>` and `<password>` with your [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) credentials):
+    """)
+    st.code("""
+MONGO_URI = "mongodb+srv://<username>:<password>@cluster0.abcde.mongodb.net/?retryWrites=true&w=majority"
+DB_NAME = "findmate_db"
+SECRET_KEY = "findmate-campus-secret-key-928420f871e98d748f"
+CLOUDINARY_CLOUD_NAME = "itnly6gt"
+CLOUDINARY_API_KEY = "148549219552935"
+CLOUDINARY_API_SECRET = "rTcPhykMrFtb_MT62LoT8RCkML4"
+    """, language="toml")
+    st.info("💡 **Need a free MongoDB database?** Create a 100% free forever database cluster at [mongodb.com/cloud/atlas](https://www.mongodb.com/cloud/atlas). Make sure to go to **Network Access** and click **Add IP Address → Allow from Anywhere (`0.0.0.0/0`)**.")
+    st.stop()
 
 # Quick KPI Metrics
 try:
@@ -152,8 +186,13 @@ if choice == "📋 Browse Registry":
         "type": "" if type_filter == "All" else type_filter.lower()
     }
 
-    results = ItemService.get_items(filters=filter_dict, page=1, per_page=18, sort_by="newest")
-    items = results.get("items", [])
+    try:
+        results = ItemService.get_items(filters=filter_dict, page=1, per_page=18, sort_by="newest")
+        items = results.get("items", [])
+    except Exception as query_err:
+        st.error(f"Could not load items from database: {query_err}")
+        items = []
+        results = {"items": [], "total": 0}
 
     if not items:
         st.info("No items found matching your current filter criteria.")

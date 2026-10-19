@@ -14,20 +14,22 @@ def get_client():
     """Return singleton MongoClient with connection verification."""
     global _mongo_client
     if _mongo_client is None:
+        mongo_uri = os.getenv("MONGO_URI") or getattr(Config, "MONGO_URI", "mongodb://localhost:27017/")
         try:
             _mongo_client = MongoClient(
-                Config.MONGO_URI,
+                mongo_uri,
                 serverSelectionTimeoutMS=3000,
                 connectTimeoutMS=3000
             )
             # Verify connection via admin ping
             _mongo_client.admin.command('ping')
-            logger.info("Successfully connected to MongoDB at %s", Config.MONGO_URI)
+            logger.info("Successfully connected to MongoDB at %s", mongo_uri.split("@")[-1] if "@" in mongo_uri else mongo_uri)
         except (ConnectionFailure, ServerSelectionTimeoutError) as exc:
-            logger.error("FATAL: Could not connect to MongoDB at %s: %s", Config.MONGO_URI, exc)
+            _mongo_client = None  # Reset so subsequent retry calls can re-attempt with new credentials
+            logger.error("FATAL: Could not connect to MongoDB at %s: %s", mongo_uri, exc)
             raise ConnectionError(
-                f"Failed to connect to MongoDB at {Config.MONGO_URI}. "
-                f"Please ensure MongoDB Community Server is running on port 27017."
+                f"Failed to connect to MongoDB at {mongo_uri}. "
+                f"Please ensure MongoDB connection URI is configured."
             ) from exc
     return _mongo_client
 
@@ -36,7 +38,8 @@ def get_db():
     global _db
     if _db is None:
         client = get_client()
-        _db = client[Config.DB_NAME]
+        db_name = os.getenv("DB_NAME") or getattr(Config, "DB_NAME", "findmate_db")
+        _db = client[db_name]
     return _db
 
 def check_db_connection():
